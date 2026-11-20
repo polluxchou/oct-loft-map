@@ -61,6 +61,7 @@
   #views { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); display:flex; gap:6px; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px; max-width:calc(100vw - 32px); overflow-x:auto; }
   #views .seg { min-height:40px; white-space:nowrap; background:var(--surface); color:var(--ink); }
   #views .seg.empty { color:var(--muted); background:var(--canvas); }
+  #views .seg:disabled, #mviews .seg:disabled, .vrows .mghost:disabled { opacity:.45; cursor:not-allowed; }   /* 存满 3 个后「+ 存视角」变灰 */
   #views .seg.primary { background:var(--accent); color:var(--ink); font-weight:650; }
   #views .seg.primary[aria-pressed="true"] { background:var(--ink); color:#fff; }
   .slot { display:inline-flex; align-items:center; background:var(--soft); border-radius:8px; }
@@ -239,7 +240,7 @@ const I18N = {
     close: "关闭", viewsNav: "视角与导航", layers: "图层筛选",
     lay_loft: "强调园区楼栋", lay_context: "周边楼", lay_major: "主干道", lay_roads: "支路", lay_metro: "地铁", lay_bus: "公交",
     iso: "等距", isoAria: "等距视图（固定角度）", isoLocked: "已锁定角度", home: "初始",
-    saveSlot: (i) => `+ 存视角 ${i}`, saveSlotAria: (i) => `把当前视角存到第 ${i} 格`, slot: (i) => `视角 ${i}`, delSlot: (i) => `删除视角 ${i}`,
+    saveSlot: (i) => `+ 存视角 ${i}`, saveSlotAria: (i) => `把当前视角存到第 ${i} 格`, slot: (i) => `视角 ${i}`, delSlot: (i) => `删除视角 ${i}`, saveView: "+ 存视角", saveViewAria: "把当前视角存成一个新视角（最多 3 个）", viewsFull: "最多存 3 个视角，删掉一个再存", saveViewSub: (n, m) => `已存 ${n} / ${m}`,
     navC2: "导航到 C2", cancelPick: "取消选点",
     navFromHere: "从这里导航到 C2", navFromBldg: "从这栋楼导航到 C2",
     kLoft: "OCT-LOFT 楼栋", kInPark: "园区内未编号楼", kContext: "周边楼", unnamed: "未编号楼", bldg: (n) => `${n} 栋`,
@@ -251,7 +252,7 @@ const I18N = {
     navNotes: "从起点就近接入路网，走到 C2 外墙 25 m 内的路口为止。园区内小路以 OSM 为准，入口、门禁、单行和台阶没有核实。",
     repick: "重新选起点", clearRoute: "清除路线", start: "起点",
     timeline: "时间线", refs: "相关报道", noRefs: "暂无公开报道", more: (n) => `更多 ${n} 条`, approx: "约 ", noLink: "条款限制深链，不放链接", b_推断: "推断", b_未证实: "未证实", refsFoot: "只列标题、日期、出处和我们写的一句话摘要，点击跳到原文。",
-    compass: "指北针：点一下回到正北朝上", compassTip: "指北针：点一下回到正北朝上。键盘：方向键平移，+/- 缩放，Q/E 旋转，N 正北，0 看全园区，I 等距，Esc 关闭", nearB: (n) => `${n} 附近`,
+    compass: "指北针：点一下回到正北朝上", compassTip: "指北针：点一下回到正北朝上。键盘：方向键平移，+/- 缩放，Q/E 旋转，N 正北，0 看全园区，I 等距，Esc 关闭",
   },
   en: {
     footerShort: "© OpenStreetMap contributors (ODbL) · indicative", slotMenuT: (i) => `View ${i}`, overwrite: "Overwrite", del: "Delete", viewsTab: "Views", go: "Go", isoRow: "Isometric view", isoSub: "Fixed angle; pan and zoom only", homeRow: "Start view", homeSub: "Back to the whole park", emptySlot: "Empty", saveHere: "+ Save current", layersT: "Layers", grab: "Expand or collapse the panel", introM: "Drag to rotate; pinch to zoom and pan. Tap buildings, metro exits or bus stops for details.", 
@@ -262,7 +263,7 @@ const I18N = {
     close: "Close", viewsNav: "Views and directions", layers: "Layer filters",
     lay_loft: "Highlight park buildings", lay_context: "Nearby buildings", lay_major: "Main roads", lay_roads: "Minor roads", lay_metro: "Metro", lay_bus: "Bus",
     iso: "Isometric", isoAria: "Isometric view (fixed angle)", isoLocked: "angle locked", home: "Reset",
-    saveSlot: (i) => `+ Save view ${i}`, saveSlotAria: (i) => `Save the current view to slot ${i}`, slot: (i) => `View ${i}`, delSlot: (i) => `Delete view ${i}`,
+    saveSlot: (i) => `+ Save view ${i}`, saveSlotAria: (i) => `Save the current view to slot ${i}`, slot: (i) => `View ${i}`, delSlot: (i) => `Delete view ${i}`, saveView: "+ Save view", saveViewAria: "Save the current view as a new view (up to 3)", viewsFull: "Up to 3 views; delete one to save another", saveViewSub: (n, m) => `${n} / ${m} saved`,
     navC2: "Directions to C2", cancelPick: "Cancel",
     navFromHere: "Directions to C2 from here", navFromBldg: "Directions to C2 from this building",
     kLoft: "OCT-LOFT building", kInPark: "Unnumbered building in the park", kContext: "Nearby building", unnamed: "Unnumbered building", bldg: (n) => `Building ${n}`,
@@ -274,7 +275,7 @@ const I18N = {
     navNotes: "The route joins the nearest path from your start point and ends at a junction within 25 m of C2. Paths inside the park follow OSM; entrances, gates, one-way rules and steps have not been checked.",
     repick: "Pick a new start", clearRoute: "Clear route", start: "Start",
     timeline: "Timeline", refs: "Related coverage", noRefs: "No public coverage found yet", more: (n) => `${n} more`, approx: "c. ", noLink: "no deep link (site terms)", b_推断: "inferred", b_未证实: "unconfirmed", refsFoot: "Titles, dates, sources and our one-line summaries only; links open the original.",
-    compass: "Compass: tap to turn north up", compassTip: "Compass: tap to turn north up. Keys: arrows pan, +/- zoom, Q/E rotate, N north, 0 whole park, I isometric, Esc close", nearB: (n) => `near ${n}`,
+    compass: "Compass: tap to turn north up", compassTip: "Compass: tap to turn north up. Keys: arrows pan, +/- zoom, Q/E rotate, N north, 0 whole park, I isometric, Esc close",
   },
 };
 const LANG_KEY = "octloft.lang";
@@ -609,7 +610,6 @@ let baseFov = 30, isoLocked = false;
 const fovFor = (f = baseFov) => f * (camera.aspect < 1 ? 1.55 : 1);
 const DEG = Math.PI / 180;
 // 园区编号楼的外轮廓点（含楼顶），用来「看全园区」；中心和范围给平移限制用
-const LOFT = D.buildings.filter((b) => b.loft).map((b) => ({ n: b.name, c: b.ring.reduce((s, p) => [s[0] + p[0] / b.ring.length, s[1] + p[1] / b.ring.length], [0, 0]) }));
 const PARK_PTS = []; for (const b of D.buildings) if (b.loft) for (const [x, z] of b.ring) PARK_PTS.push(new THREE.Vector3(x, 0, z), new THREE.Vector3(x, b.h, z));
 const PARK_BOX = new THREE.Box3().setFromPoints(PARK_PTS);
 const PAN_BOX = { x0: -820, x1: 640, z0: -900, z1: 720 };   // 硬边界：目标点不出四个地铁站围成的范围
@@ -664,8 +664,7 @@ const limitsFor = (iso) => { if (!iso) return [250, 3600]; const d = distOf(isoV
 function specNow() {
   const off = camera.position.clone().sub(controls.target), d = off.length();
   const r = d * Math.tan(fovFor() * DEG / 2) * Math.min(1, camera.aspect);
-  const n = LOFT.reduce((b, L) => { const k = Math.hypot(L.c[0] - controls.target.x, L.c[1] - controls.target.z); return k < b.k ? { k, n: L.n } : b; }, { k: 260, n: null }).n;
-  return { t: [+controls.target.x.toFixed(1), +controls.target.z.toFixed(1)], az: +(Math.atan2(off.x, off.z) / DEG).toFixed(1), pol: +(Math.acos(off.y / d) / DEG).toFixed(1), r: +r.toFixed(1), iso: isoLocked, near: n };
+  return { t: [+controls.target.x.toFixed(1), +controls.target.z.toFixed(1)], az: +(Math.atan2(off.x, off.z) / DEG).toFixed(1), pol: +(Math.acos(off.y / d) / DEG).toFixed(1), r: +r.toFixed(1), iso: isoLocked };
 }
 function viewFromSpec(s) {
   const fov = s.iso ? ISO_FOV : 30, a = s.az * DEG, p = s.pol * DEG;
@@ -697,21 +696,27 @@ function goTo(v, ms = 700) {
 }
 const currentView = specNow;
 const KEY = "octloft.views.v1";
-let slots = [null, null, null];
-try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(s)) slots = [0, 1, 2].map((i) => s[i] || null); } catch {}
+// 保存视角（pollux 2026-11-20）：一个「+ 存视角」按钮和等距、初始并列，每存一次新增一个视角，按顺序叫视角 1、2、3，最多 3 个
+const MAX_VIEWS = 3;
+let slots = [];
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(s)) slots = s.filter(Boolean).slice(0, MAX_VIEWS); } catch {}
 const saveSlots = () => { try { localStorage.setItem(KEY, JSON.stringify(slots)); } catch {} };
+function addView() { if (slots.length >= MAX_VIEWS) return; slots.push(currentView()); curSlot = slots.length - 1; saveSlots(); renderViews(); }
+function delView(i) { slots.splice(i, 1); if (curSlot === i) curSlot = -1; else if (curSlot > i) curSlot--; saveSlots(); renderViews(); }
 const viewsBar = document.getElementById("views");
 function renderViewsDesktop() {
   viewsBar.innerHTML = "";
   const add = (label, cls, onClick, extra) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.onclick = onClick; if (extra) b.setAttribute("aria-label", extra); viewsBar.appendChild(b); return b; };
-  add(t("iso"), "seg" + (isoLocked ? " on" : ""), () => { goTo(isoView()); renderViews(); }, t("isoAria")).dataset.lock = t("isoLocked");
-  add(t("home"), "seg", () => { goTo(VIEW_DEFAULT); renderViews(); });
+  add(t("iso"), "seg" + (isoLocked ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria")).dataset.lock = t("isoLocked");
+  add(t("home"), "seg", () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); });
+  const sv = add(t("saveView"), "seg empty", addView, t("saveViewAria"));
+  if (slots.length >= MAX_VIEWS) { sv.disabled = true; sv.title = t("viewsFull"); }
   slots.forEach((v, i) => {
-    if (!v) { add(t("saveSlot", i + 1), "seg empty", () => { slots[i] = currentView(); saveSlots(); renderViews(); }, t("saveSlotAria", i + 1)); return; }
     const wrap = document.createElement("span"); wrap.className = "slot";
-    const b = document.createElement("button"); b.type = "button"; b.className = "seg"; b.textContent = t("slot", i + 1);   // pollux：保存的视角只写「视角 1 / 视角 2」，不加「X 附近」描述 b.onclick = () => { goTo(v); renderViews(); };
+    const b = document.createElement("button"); b.type = "button"; b.className = "seg" + (curSlot === i ? " on" : ""); b.textContent = t("slot", i + 1);
+    b.onclick = () => { curSlot = i; goTo(v); renderViews(); };
     const x = document.createElement("button"); x.type = "button"; x.className = "slot-x"; x.textContent = "×"; x.setAttribute("aria-label", t("delSlot", i + 1));
-    x.onclick = () => { slots[i] = null; saveSlots(); renderViews(); };
+    x.onclick = () => delView(i);
     wrap.append(b, x); viewsBar.appendChild(wrap);
   });
   const nav = add(t(picking ? "cancelPick" : "navC2"), "seg primary", () => { setPicking(!picking); });
@@ -734,9 +739,10 @@ function quickViews(el, onCur) {
   const add = (label, cls, fn, aria) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.onclick = fn; if (aria) b.setAttribute("aria-label", aria); el.appendChild(b); return b; };
   add(t("iso"), "seg" + (isoLocked ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria"));
   add(t("home"), "seg", () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); });
-  const d = document.createElement("span"); d.className = "div"; el.appendChild(d);
+  const sv = add("+", "seg slotb empty", addView, t("saveViewAria"));   // 存视角和等距、初始并列
+  if (slots.length >= MAX_VIEWS) { sv.disabled = true; sv.title = t("viewsFull"); }
+  if (slots.length) { const d = document.createElement("span"); d.className = "div"; el.appendChild(d); }
   slots.forEach((v, i) => {
-    if (!v) { add("+", "seg slotb empty", () => { slots[i] = currentView(); curSlot = i; saveSlots(); renderViews(); }, t("saveSlotAria", i + 1)); return; }
     add(String(i + 1), "seg slotb" + (curSlot === i ? " cur" : ""), () => { if (curSlot === i && onCur) return onCur(i); curSlot = i; goTo(v); renderViews(); }, t("slot", i + 1));
   });
 }
@@ -744,18 +750,18 @@ function quickViews(el, onCur) {
 function viewRows(el) {
   const row = (nm, sub, btns) => `<div class="row"><div class="nm">${nm}<small>${sub}</small></div>${btns}</div>`;
   let h = row(t("isoRow"), t("isoSub"), `<button type="button" class="mghost${isoLocked ? " on" : ""}" data-iso>${t(isoLocked ? "isoLocked" : "go")}</button>`)
-    + row(t("homeRow"), t("homeSub"), `<button type="button" class="mghost" data-home>${t("go")}</button>`);
+    + row(t("homeRow"), t("homeSub"), `<button type="button" class="mghost" data-home>${t("go")}</button>`)
+    + row(t("saveView").replace(/^\+ /, ""), slots.length >= MAX_VIEWS ? t("viewsFull") : t("saveViewSub", slots.length, MAX_VIEWS), `<button type="button" class="mghost add" data-save${slots.length >= MAX_VIEWS ? " disabled" : ""} aria-label="${t("saveViewAria")}">${t("saveHere")}</button>`);
   slots.forEach((v, i) => {
-    h += v ? row(t("slot", i + 1), curSlot === i ? "●" : "", `<button type="button" class="mghost${curSlot === i ? " on" : ""}" data-go="${i}">${t("go")}</button><button type="button" class="mghost" data-ow="${i}">${t("overwrite")}</button><button type="button" class="mghost" data-del="${i}" aria-label="${t("delSlot", i + 1)}">${t("del")}</button>`)
-           : row(t("slot", i + 1), t("emptySlot"), `<button type="button" class="mghost add" data-save="${i}" aria-label="${t("saveSlotAria", i + 1)}">${t("saveHere")}</button>`);
+    h += row(t("slot", i + 1), curSlot === i ? "●" : "", `<button type="button" class="mghost${curSlot === i ? " on" : ""}" data-go="${i}">${t("go")}</button><button type="button" class="mghost" data-ow="${i}">${t("overwrite")}</button><button type="button" class="mghost" data-del="${i}" aria-label="${t("delSlot", i + 1)}">${t("del")}</button>`);
   });
   el.innerHTML = h;
   el.querySelector("[data-iso]").onclick = () => { curSlot = -1; goTo(isoView()); renderViews(); };
   el.querySelector("[data-home]").onclick = () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); };
   el.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { const i = +b.dataset.go; curSlot = i; goTo(slots[i]); renderViews(); });
   el.querySelectorAll("[data-ow]").forEach((b) => b.onclick = () => { const i = +b.dataset.ow; slots[i] = currentView(); curSlot = i; saveSlots(); renderViews(); });
-  el.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => { const i = +b.dataset.del; slots[i] = null; if (curSlot === i) curSlot = -1; saveSlots(); renderViews(); });
-  el.querySelectorAll("[data-save]").forEach((b) => b.onclick = () => { const i = +b.dataset.save; slots[i] = currentView(); curSlot = i; saveSlots(); renderViews(); });
+  el.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => delView(+b.dataset.del));
+  el.querySelectorAll("[data-save]").forEach((b) => b.onclick = addView);
 }
 const navBtn = document.getElementById("navBtn");
 navBtn.onclick = () => setPicking(!picking);

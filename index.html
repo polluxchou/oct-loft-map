@@ -878,6 +878,8 @@ function routePanel() {
   panel.style.display = "block";
   pc.querySelector("[data-repick]").onclick = () => setPicking(true);
   pc.querySelector("[data-clear]").onclick = () => { clearRoute(); lastRoute = null; panel.style.display = "none"; };
+  // 手机：导航结果停在半屏（从详情卡直接导航时卡片一直开着，MutationObserver 不会再触发 onCard，所以这里显式设一次）
+  if (MOBILE && typeof setLevel === "function") requestAnimationFrame(() => setLevel(1));
 }
 const hint = document.getElementById("hint");
 function setPicking(on) { picking = on; onPicking(on); document.body.classList.toggle("picking", on); hint.hidden = !on; if (on) { select(null); } renderViews(); }

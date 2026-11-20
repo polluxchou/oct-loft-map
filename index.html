@@ -33,6 +33,14 @@
   .lb.metro { background:var(--surface); color:var(--metro); border:1px solid var(--metro); padding:1px 7px; border-radius:4px; font-weight:650; }
   .lb.exit { background:var(--metro); color:#fff; padding:0 4px; border-radius:4px; font-size:11px; font-weight:650; }
   .lb.bus { background:var(--surface); color:var(--bus); border:1px solid var(--bus); padding:0 5px; border-radius:4px; font-size:11px; }
+  /* 附近 WeWork 方位标（2026-11-20）：在画面里钉在原位，出画面贴边、箭头指向它 */
+  .ww { position:absolute; transform:translate(-50%,-50%); pointer-events:auto; display:flex; align-items:center; gap:4px; background:var(--surface); color:var(--ink); border:1px solid var(--ink); border-radius:4px; padding:1px 6px; font:inherit; font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer; font-variant-numeric:tabular-nums; }
+  .ww .ar { display:inline-block; transform:rotate(var(--a, 0rad)); font-size:11px; line-height:1; }
+  .ww:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+  #panel .wwl { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+  #panel .wwl li { display:grid; gap:2px; }
+  #panel .wwl .tag { justify-self:start; }
+  #panel .wwl small { color:var(--muted); font-size:13px; }
   .lb.route { background:var(--surface); color:var(--ink); border:1px solid var(--ink); padding:1px 7px; border-radius:4px; font-weight:650; }
   .lb.route.end { background:var(--accent); color:var(--ink); border:2px solid var(--brand); }
   /* 顶栏：大标题 + 右侧小字场所名（同参考 Map 页） */
@@ -1126,6 +1134,7 @@ function select(o) {
     navFromHere = b.ring.reduce((s, p) => [s[0] + p[0] / b.ring.length, s[1] + p[1] / b.ring.length], [0, 0]);
   } else if (u.kind === "station") { h = `<div class="eyebrow">${t("station")}</div><h2>${t("stationName", u.s)}</h2>` + navBtn(); navFromHere = u.s.p; }
   else if (u.kind === "exit") { h = `<div class="eyebrow">${t("exit")}</div><h2>${lang === "en" ? u.e.nameEn : u.e.name}</h2>` + navBtn(); navFromHere = u.e.p; }
+  else if (u.kind === "wework") { h = weworkCard(); navFromHere = null; }
   else if (u.kind === "bus") { h = `<div class="eyebrow">${t("bus")}</div><h2>${lang === "en" ? u.s.nameEn : u.s.name}</h2>` + (u.s.routes ? `<section><h3>${t("routes")}</h3><p>${u.s.routes}</p></section>` : `<section><p class="k">${t("noRoutes")}</p></section>`) + navBtn(); navFromHere = u.s.p; }
   pc.innerHTML = h; panel.style.display = "block";
   if (typeof liftActions === "function") liftActions();   // 卡片已开着时换一栋楼，onCard 不会再触发；手机上照样把「从这栋楼导航到 C2」提到标题下（pollux 2026-11-20：不用滑屏就看得到）
@@ -1160,7 +1169,7 @@ const tmp = new THREE.Vector3();
 // 编号错开的候选偏移（单位：一个标签高）：只上下错开（pollux 2026-11-20「改成只豎直」，引线全部竖直），由近到远、同距先上后下，最远 10 格
 // 第一项是左右滑动比例（标签框始终罩住楼的 x，引线仍竖直）：先正对，再左右各滑八成半宽
 const NUDGE = (() => { const o = []; for (let j = 1; j <= 10; j++) for (const f of [0, -0.8, 0.8]) o.push([f, -j], [f, j]); return o; })();
-let farMode = false;
+let farMode = false, lblBoxes = [];
 // 引线（pollux 2026-11-20「加引線」）：编号被错开、离自己的楼较远时，从屋顶中心拉一条直线到标签边缘，楼端加一个小圆点
 const leaderSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 leaderSvg.id = "leaders"; leaderSvg.setAttribute("aria-hidden", "true");
@@ -1208,6 +1217,7 @@ function placeLabels() {
     } else if (hits(bx) || cut(bx)) { L.el.style.display = "none"; continue; }
     boxes.push(bx);
   }
+  lblBoxes = boxes;   // 给 WeWork 方位标避让用
   leaderSvg.innerHTML = leads.map(([x1, y1, x2, y2]) => `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/><circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="2.2"/>`).join("");
 }
 // 优先级：地铁 > 园区编号 > 路名 > 公交
@@ -1833,8 +1843,90 @@ labelsEl.addEventListener("contextmenu", (e) => e.preventDefault());   // 右键
 
 // 启动：URL 里带视角就用它，否则按当前屏幕看全园区（候选页的 OCT_FOCUS 优先）
 if (!window.OCT_FOCUS) { const hs = readHash(); goTo(hs || VIEW_DEFAULT, 0); renderViews(); }
+// ---------- 附近 WeWork（pollux 2026-11-20）：以 C2 为圆心 3 km 内没有，改按 5 / 10 / 20 km 三档列出 ----------
+// 都在模型范围外：同方向的几家合成一个方位标，在画面里钉在原位，出了画面就贴着可用画面边缘、箭头指向它；点开是按距离分档的详情卡
+// 来源：WeWork 中国官网深圳页（2026-11-20 查，深圳共 5 家，香港最近一家也在 20 km 外）；位置取 OSM 楼名，华润置地大厦 D 座 OSM 无楼名，按科发路 91 号估（± 300 m）
+const WEWORKS = [
+  { p: [-3675.7, -87.7], km: 3.56, deg: 267, zh: ["康佳研发大厦", "南山区科技南十二路 28 号 康佳研发大厦 A 座 18 层", "正西"], en: ["KONKA Building", "18/F, Block A, Konka Building, 28 Keji South 12th Rd, Nanshan", "W"] },
+  { p: [-3907.0, -554.8], km: 3.8, deg: 275, est: true, zh: ["华润置地大厦 D 座", "南山区科发路 91 号 华润置地大厦 D 座 5 层", "正西"], en: ["CR Land Tower D", "5F, CR Land Tower D, 91 Kefa Rd, Nanshan", "W"] },
+  { p: [-4118.8, -91.0], km: 4.01, deg: 268, zh: ["TCL 大厦", "南山区高新南一道 6 号 TCL 大厦 B 座 9 层", "正西"], en: ["TCL Building", "9F, Tower B, TCL Building, 6 Gaoxin South 1st St, Nanshan", "W"] },
+  { p: [-4519.8, 1126.1], km: 4.61, deg: 253, zh: ["威新软件科技园", "南山区高新南九道 9 号 威新软件科技园 7 栋 1 层", "西偏南"], en: ["Viseen Shenzhen Business Park", "1/F, Building 7, 9 Gaoxin South 9th Rd, Nanshan", "WSW"] },
+  { p: [7929.1, -2070.3], km: 8.25, deg: 77, zh: ["深业上城 UpperHills Loft", "福田区皇岗路 5001 号 深业上城 Loft B 4 层", "东偏北"], en: ["UpperHills Loft", "Level 4, Loft B, UpperHills, 5001 Huanggang Rd, Futian", "ENE"] },
+];
+const WW_BANDS = [[0, 5], [5, 10], [10, 20]];
+function weworkCard() {
+  const en = lang === "en";
+  const kmTxt = (w) => `${w.est ? "≈" : ""}${w.km.toFixed(1)} km`;
+  const band = ([a, z]) => {
+    const list = WEWORKS.filter((w) => w.km >= a && w.km < z);
+    const h3 = en ? (a ? `${a}–${z} km (${list.length})` : `Within ${z} km (${list.length})`) : (a ? `${a}–${z} km（${list.length} 家）` : `${z} km 内（${list.length} 家）`);
+    return `<section><h3>${h3}</h3>` + (list.length ? `<ol class="wwl">${list.map((w) => { const L = en ? w.en : w.zh; return `<li><b>WeWork ${esc(L[0])}</b><span class="tag">${kmTxt(w)} · ${L[2]}</span><small>${esc(L[1])}</small></li>`; }).join("")}</ol>` : `<p class="k">${en ? "None" : "无"}</p>`) + `</section>`;
+  };
+  return `<div class="eyebrow">${en ? "Nearby coworking" : "附近共享办公"}</div><h2>${en ? "WeWork near C2" : "C2 附近的 WeWork"}</h2>`
+    + `<p class="k">${en ? "Straight-line distance from C2. None within 3 km; the nearest is KONKA, 3.6 km west." : "按到 C2 的直线距离分档。3 km 内没有，最近是正西 3.6 km 的康佳研发大厦。"}</p>`
+    + WW_BANDS.map(band).join("")
+    + `<section><h3>${en ? "Source" : "来源"}</h3><p class="k"><a href="https://www.wework.cn/en-US/city/shenzhen/" target="_blank" rel="noopener">${en ? "WeWork China · Shenzhen" : "WeWork 中国官网 · 深圳"}</a>${en ? " (checked 2026-11-20); locations from OpenStreetMap, ≈ = estimated" : "（2026-11-20 查）；位置取 OpenStreetMap，≈ 为估算"}</p></section>`;
+}
+const wwObj = { userData: { kind: "wework" } };
+// 方位标：方位角相差 < 30° 的合成一个，位置取最近那家
+const wwGroups = [];
+for (const w of [...WEWORKS].sort((a, b) => a.km - b.km)) { const g = wwGroups.find((g) => Math.abs(((g.deg - w.deg + 540) % 360) - 180) < 30); if (g) g.items.push(w); else wwGroups.push({ deg: w.deg, items: [w] }); }
+for (const g of wwGroups) {
+  const n = g.items[0];
+  g.p = new THREE.Vector3(n.p[0], 0, n.p[1]);
+  g.tx = g.items.length > 1 ? `WeWork ×${g.items.length} · ${n.km.toFixed(1)}–${g.items.at(-1).km.toFixed(1)} km` : `WeWork ${n.km.toFixed(1)} km`;
+  g.el = document.createElement("button"); g.el.type = "button"; g.el.className = "ww";
+  g.el.innerHTML = `<span class="ar" aria-hidden="true">➜</span><span class="tx"></span>`;
+  g.el.onclick = () => select(wwObj);
+  document.getElementById("labels").appendChild(g.el);
+}
+const wwTmp = new THREE.Vector3();
+const wwMapBottom = () => { const h = parseFloat(document.body.style.getPropertyValue("--sheetH")); const sh = document.getElementById("sheet"); return (sh && getComputedStyle(sh).display !== "none" && h ? innerHeight - h : innerHeight) - 30; };   // 地图可见区下沿（手机扣掉底部面板和署名条）
+// 避让候选偏移 [沿边, 垂直边]（px）：沿边方向优先（代价 1），往画面里挪代价 2，由近到远
+const WW_TRY = [];
+for (let a = -240; a <= 240; a += 12) for (let b = -36; b <= 36; b += 12) if (a || b) WW_TRY.push([a, b]);   // 往画面里最多挪 36 px，再多就看不出是贴边的方位标，改走下面的「沿边往下找」
+WW_TRY.sort((p, q) => (Math.abs(p[0]) + 2 * Math.abs(p[1])) - (Math.abs(q[0]) + 2 * Math.abs(q[1])));
+let wwRect = null, wwRectAt = 0;
+function placeWework() {
+  const now = performance.now();
+  if (!wwRect || now - wwRectAt > 250) {
+    wwRect = { ...safeRect({ withPanel: false }) }; wwRectAt = now;
+    // 右侧按钮列（指北针、缩放档位）不压：在右半边且和可用画面上下重叠的，右边界退到它左边
+    for (const id of ["compass", "zoomCtl"]) { const el = document.getElementById(id); if (!el || getComputedStyle(el).display === "none") continue; const r = el.getBoundingClientRect(); if (r.width && r.left > innerWidth / 2 && r.bottom > wwRect.top && r.top < wwRect.bottom) wwRect.right = Math.min(wwRect.right, r.left - 6); }
+  }   // 不随详情卡收缩：卡片打开时方位标留在画面边缘（可能被卡片盖住），不挤进地图中间压楼号
+  const R = wwRect, m = 22, cx = (R.left + R.right) / 2, cy = (R.top + R.bottom) / 2;
+  const placed = [];
+  for (const g of wwGroups) {
+    const el = g.el;
+    if (el._t !== g.tx + lang) { el._t = g.tx + lang; el.querySelector(".tx").textContent = g.tx; el.setAttribute("aria-label", `${g.tx}${lang === "en" ? " — open list" : "，打开列表"}`); }
+    wwTmp.copy(g.p).project(camera);
+    let x = (wwTmp.x + 1) / 2 * innerWidth, y = (1 - wwTmp.y) / 2 * innerHeight;
+    if (wwTmp.z > 1) { x = 2 * cx - x; y = 2 * cy - y; }   // 在相机背后：投影点反过来
+    const inside = wwTmp.z <= 1 && x > R.left + m && x < R.right - m && y > R.top + m && y < R.bottom - m;
+    if (!inside) {   // 从可用画面中心朝它的方向射出去，停在边缘内 m px
+      const vx = x - cx, vy = y - cy, k = Math.min(vx ? ((vx > 0 ? R.right - m : R.left + m) - cx) / vx : Infinity, vy ? ((vy > 0 ? R.bottom - m : R.top + m) - cy) / vy : Infinity);
+      x = cx + vx * k; y = cy + vy * k;
+      el.style.setProperty("--a", Math.atan2(vy, vx) + "rad");
+    } else el.style.setProperty("--a", Math.PI / 2 + "rad");
+    const w = el.offsetWidth, hh = el.offsetHeight;   // 标签本体收在画面内
+    let B = R.bottom;
+    const fit = (px, py) => [Math.min(R.right - w / 2 - 4, Math.max(R.left + w / 2 + 4, px)), Math.min(B - hh / 2 - 4, Math.max(R.top + hh / 2 + 4, py))];
+    // 不压楼号、站名等标签和别的方位标：贴左右边时上下滑，贴上下边时左右滑，由近到远找空位；找不到就留在原位
+    const hit = ([px, py]) => [...lblBoxes, ...placed].some((q) => !(px + w / 2 + 3 < q[0] || px - w / 2 - 3 > q[2] || py + hh / 2 + 3 < q[1] || py - hh / 2 - 3 > q[3]));
+    const vert = !inside && (Math.abs(x - (R.left + m)) < 1 || Math.abs(x - (R.right - m)) < 1);
+    let pos = fit(x, y);
+    if (hit(pos)) {
+      let ok = false;
+      for (const [da, dp] of WW_TRY) { const c = fit(x + (vert ? dp : da), y + (vert ? da : dp)); if (!hit(c)) { pos = c; ok = true; break; } }
+      // 焦点区（手机是上 55%）挤满楼号时，往下放到地图下半部的空处：沿同一侧边缘往下找，箭头方向不变
+      if (!ok) { B = wwMapBottom(); const ex = x < (R.left + R.right) / 2 ? R.left : R.right; for (let py = y; py < B; py += hh + 4) { const c = fit(ex, py); if (!hit(c)) { pos = c; break; } } }
+    }
+    el.style.left = pos[0] + "px"; el.style.top = pos[1] + "px";
+    placed.push([pos[0] - w / 2, pos[1] - hh / 2, pos[0] + w / 2, pos[1] + hh / 2]);
+  }
+}
 function rescaleBus() { const r = zoomRatio(); if (Math.abs(r - busZoomR) < 0.01) return; busZoomR = r; for (const f of busScalers) f(r); }
-renderer.setAnimationLoop((now) => { if (tween) tween(now); controls.update(); cameraGuard(); rescaleBus(); renderer.render(scene, camera); placeLabels(); updateCompass(); updateZoomUI(); });
+renderer.setAnimationLoop((now) => { if (tween) tween(now); controls.update(); cameraGuard(); rescaleBus(); renderer.render(scene, camera); placeLabels(); placeWework(); updateCompass(); updateZoomUI(); });
 // 详情卡开关 → body.card（手机面板据此切换首页 / 详情）
 new MutationObserver(() => { const on = panel.style.display === "block"; if (on !== document.body.classList.contains("card")) { document.body.classList.toggle("card", on); onCard(on); } }).observe(panel, { attributes: true, attributeFilter: ["style"] });
 // 右下角数据来源署名：≥ 900 宽时如果会碰到底部居中的工具条，就收进工具条右边和缩放 / 指北针那一列之间、折成多行（pollux 2026-11-20）

@@ -1146,7 +1146,8 @@ function placeLabels() {
   const dist = camera.position.distanceTo(controls.target);
   // 远景（pollux 2026-11-20「远景只留 C2」）：楼间距约 30 m，画面上不到 ~16 px 时编号会叠成一团，这时编号只留主会场 C2 和当前选中的楼
   const pxPerM = innerHeight / (2 * dist * Math.tan(camera.fov / 2 * Math.PI / 180));
-  farMode = farMode ? pxPerM < 0.5 : pxPerM < 0.45; const far = farMode;   // 进出阈值不同（0.45 进 / 0.5 出），临界距离附近不会一帧全隐一帧全显   // 0.45：手机默认全园区视角仍显示全部编号，出路线拉远（约 2 km 以上）才收
+  farMode = farMode ? pxPerM < 0.5 : pxPerM < 0.45; const far = farMode && !topMode;   // 俯视图不套「远景只留 C2」：手机 1x 俯视也显示全部楼号（pollux 2026-11-20）
+    // 进出阈值不同（0.45 进 / 0.5 出），临界距离附近不会一帧全隐一帧全显   // 0.45：手机默认全园区视角仍显示全部编号，出路线拉远（约 2 km 以上）才收
   for (const L of labels) {
     if (!vis[L.layer] || (L.minZoom && dist > 900)) { L.el.style.display = "none"; continue; }
     if (far && L.layer === "fixed" && L.b && L.b.name !== "C2" && sel?.userData.b !== L.b) { L.el.style.display = "none"; continue; }

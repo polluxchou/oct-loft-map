@@ -2989,6 +2989,18 @@ window.__ready = true;
   }
   requestAnimationFrame(popTick);
   window.__spPop = () => POP.map((p) => [p.s.popup, p.shell.visible, +p.shell.scale.y.toFixed(2)]);   // 自查用
+  // 赞助商视角（pollux 2026-11-20：默认 2x）：打开口袋时如果比 2x 远，就拉到 2x，并把几栋快闪店楼放到可用画面中间；已经在 2x / 3x 不动
+  function sponsorView() {
+    if (!POP.length || zoomRatio() > 1.9) return;
+    const pts = POP.map((p) => { const [x, z] = centroid(p.m.userData.b.ring); return new THREE.Vector3(x, p.m.userData.b.h, z); });
+    requestAnimationFrame(() => {   // 等口袋 / 面板就位后再按可用画面取景
+      const iso = isoLocked;
+      // 桌面口袋浮层在左下：取景时把它占的那一条让出来，快闪店楼落在口袋右边的画面中间
+      let rect = safeRect(); const o = !MOBILE && !ov.closest("#sheet") && shown(ov);
+      if (o) rect = { ...rect, left: Math.max(rect.left, o[2] + 16) };
+      goTo({ ...frame(pts, iso ? lockDir() : curDir(), iso ? ISO_FOV : baseFov, { rect, dist: fitDist() / 2, pad: 0 }), iso }, 700);
+    });
+  }
   function unlockPopup() { if (popOn || !POP.length) return; popOn = true; popT0 = performance.now(); }
 
   // ---------- 口袋面板 ----------
@@ -3006,6 +3018,7 @@ window.__ready = true;
     if (typeof setPicking === "function" && picking) setPicking(false);
     if (!detailId || detailId !== focusSp) focusSp = null;   // 回到正在地图上看的那一家时，地图标记保留
     unlockPopup();   // 打开礼物口袋 = 解锁快闪店模式
+    sponsorView();
     isOpen = true; tab = tb; cur = SPS.find((x) => x.id === detailId) || null; view = cur ? "detail" : "list"; ov.classList.add("on"); document.body.classList.add("sp-open");
     if (MOBILE) { sheetBody.prepend(ov); document.body.classList.add("sp-in-sheet"); setLevel(1); sheetBody.scrollTop = 0; }
     render(); updateEntry();

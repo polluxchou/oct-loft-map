@@ -210,7 +210,8 @@
 
   /* ===== 顶栏收紧（pollux 2026-11-20）：功能说明收进「?」；图层 6 个图标缩小一半，和「从机场 / 车站 / 口岸怎么来」并成两组工具；数据来源移到右下角 ===== */
   header .top { gap:8px; }
-  #helpBtn { margin-left:auto; flex:none; width:32px; height:32px; border-radius:50%; border:1px solid var(--segline); background:var(--surface); color:var(--muted); font-size:15px; font-weight:650; cursor:pointer; padding:0; line-height:1; }
+  /* 「?」和顶栏工具行的 6 个图层图标同尺幅：22 px 方角（pollux 2026-11-20）；手机档仍是 44 px */
+  #helpBtn { margin-left:auto; flex:none; width:22px; height:22px; border-radius:5px; border:1px solid var(--segline); background:var(--surface); color:var(--muted); font-size:12px; font-weight:650; cursor:pointer; padding:0; line-height:1; }
   #helpBtn[aria-expanded="true"] { background:var(--ink); border-color:var(--ink); color:#fff; }
   #helpBtn:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   #help p { margin:6px 0 0; font-size:13px; color:var(--muted); }
@@ -225,6 +226,7 @@
   body > .attr { position:fixed; right:16px; bottom:8px; margin:0; font-size:11px; color:var(--muted); background:rgba(245,245,245,.88); padding:1px 6px; border-radius:4px; max-width:calc(100vw - 32px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; z-index:1; }
   @media (min-width: 900px) { #compass { bottom:36px; } }   /* 给右下角的数据来源让位 */
   @media (max-width: 899px) and (min-width: 641px) { body > .attr { bottom:78px; } }   /* 底部工具条上方 */
+  @media (max-width: 899px) and (min-width: 641px) { #panel { bottom:100px; } }   /* 详情卡再往上让出署名那一行，不压住数据来源（pollux 2026-11-20） */
   @media (max-width: 640px) {
     .attr-m { left:auto; right:10px; max-width:calc(100vw - 20px); }
     #helpBtn { pointer-events:auto; width:44px; height:44px; border-radius:10px; border-color:var(--line); font-size:18px; }
@@ -241,6 +243,8 @@
   #zoomCtl button.on { background:var(--accent); font-weight:650; }
   #zoomCtl button:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; }
   @media (max-width: 899px) { #zoomCtl { bottom:auto; top:68px; } }
+  /* ≥ 900：右下角竖排着缩放档位和指北针，详情 / 交通卡整体左移让出这一列，不再压在上面（pollux 2026-11-20） */
+  @media (min-width: 900px) { #panel { right:72px; } }
   @media (max-width: 640px) { #zoomCtl { right:10px; top:calc(var(--st, 0px) + 8px + 54px + 10px + 44px + 8px); } #zoomCtl button { height:44px; } body.help-open #zoomCtl { visibility:hidden; } }
 
   /* ===== 手机：左上角下拉 picker（图层 / 交通），pollux 2026-11-20 ===== */
@@ -766,7 +770,7 @@ const I18N = {
     footer: "数据 © OpenStreetMap contributors (ODbL) · 2026-11-20 · 示意图，非测绘成果",
     close: "关闭", viewsNav: "视角与导航", layers: "图层筛选",
     lay_loft: "强调园区楼栋", lay_context: "周边楼", lay_major: "主干道", lay_roads: "支路", lay_metro: "地铁", lay_bus: "公交",
-    iso: "等距", isoAria: "等距视图（固定角度）", isoLocked: "已锁定角度", home: "初始",
+    iso: "等距", isoAria: "等距视图（固定角度）", top: "俯视", topAria: "俯视图（2D，正北朝上）", topRow: "俯视图", topSub: "2D，正北朝上，可平移缩放", isoLocked: "已锁定角度", home: "初始",
     saveSlot: (i) => `+ 存视角 ${i}`, saveSlotAria: (i) => `把当前视角存到第 ${i} 格`, slot: (i) => `视角 ${i}`, delSlot: (i) => `删除视角 ${i}`, saveView: "+ 存视角", saveViewAria: "把当前视角存成一个新视角（最多 3 个）", viewsFull: "最多存 3 个视角，删掉一个再存", saveViewSub: (n, m) => `已存 ${n} / ${m}`,
     navC2: "导航到 C2", cancelPick: "取消选点",
     navFromHere: "从这里导航到 C2", navFromBldg: "从这栋楼导航到 C2",
@@ -798,7 +802,7 @@ const I18N = {
     footer: "Data © OpenStreetMap contributors (ODbL) · 2026-11-20 · Indicative only, not a survey",
     close: "Close", viewsNav: "Views and directions", layers: "Layer filters",
     lay_loft: "Highlight park buildings", lay_context: "Nearby buildings", lay_major: "Main roads", lay_roads: "Minor roads", lay_metro: "Metro", lay_bus: "Bus",
-    iso: "Isometric", isoAria: "Isometric view (fixed angle)", isoLocked: "angle locked", home: "Reset",
+    iso: "Isometric", isoAria: "Isometric view (fixed angle)", top: "Top", topAria: "Top view (2D, north up)", topRow: "Top view", topSub: "2D, north up; pan and zoom only", isoLocked: "angle locked", home: "Reset",
     saveSlot: (i) => `+ Save view ${i}`, saveSlotAria: (i) => `Save the current view to slot ${i}`, slot: (i) => `View ${i}`, delSlot: (i) => `Delete view ${i}`, saveView: "+ Save view", saveViewAria: "Save the current view as a new view (up to 3)", viewsFull: "Up to 3 views; delete one to save another", saveViewSub: (n, m) => `${n} / ${m} saved`,
     navC2: "Directions to C2", cancelPick: "Cancel",
     navFromHere: "Directions to C2 from here", navFromBldg: "Directions to C2 from this building",
@@ -1182,9 +1186,12 @@ const VIEW_DEFAULT = { home: true, ...HOME, fov: 30, iso: false };   // home: tr
 const ISO_DIR = new THREE.Vector3(1, Math.SQRT2 * Math.tan(35.264 * Math.PI / 180), 1).normalize();
 const ISO_FOV = 8;
 const HOME_DIR = new THREE.Vector3(-560, 1500, 1230).normalize();   // 初始视角方向：西南方俯视（同 homeAt）
-let baseFov = 30, isoLocked = false;
+let baseFov = 30, isoLocked = false, topMode = false;   // isoLocked = 角度锁定（等距或俯视）；topMode = 锁定的是俯视图
 const fovFor = (f = baseFov) => f * (camera.aspect < 1 ? 1.55 : 1);
 const DEG = Math.PI / 180;
+// 俯视图（2D，pollux 2026-11-20）：相机正上方往下看，略偏南 0.3° 让 OrbitControls 有确定的方位，正北朝上；视场角同等距，画面接近平面图
+const TOP_DIR = new THREE.Vector3(0, Math.cos(0.3 * DEG), Math.sin(0.3 * DEG));
+const lockDir = () => (topMode ? TOP_DIR : ISO_DIR);
 // 园区编号楼的外轮廓点（含楼顶），用来「看全园区」；中心和范围给平移限制用
 const PARK_PTS = []; for (const b of D.buildings) if (b.loft) for (const [x, z] of b.ring) PARK_PTS.push(new THREE.Vector3(x, 0, z), new THREE.Vector3(x, b.h, z));
 const PARK_BOX = new THREE.Box3().setFromPoints(PARK_PTS);
@@ -1227,27 +1234,28 @@ function frame(pts, dir, fov, { rect = safeRect(), pad = 16, dist = null } = {})
     if (dist == null) d *= Math.max((x1 - x0) / rw, (y1 - y0) / rh, 0.05);
   }
   if (dist == null && fov >= 20 && d < 260) return frame(pts, dir, fov, { rect, pad, dist: 260 });   // 不比缩放下限（250 m）还近，否则过渡结束时会被夹回去、画面偏离焦点区
-  return { pos: T.clone().addScaledVector(dir, d).toArray(), target: T.toArray(), fov, iso: dir === ISO_DIR };
+  return { pos: T.clone().addScaledVector(dir, d).toArray(), target: T.toArray(), fov, iso: dir === ISO_DIR || dir === TOP_DIR, top: dir === TOP_DIR };
 }
 const curDir = () => camera.position.clone().sub(controls.target).normalize();
 const homeView = () => frame(PARK_PTS, HOME_DIR, 30, { rect: safeRect({ withPanel: false }) });   // 看全园区
 function isoView() { return frame(PARK_PTS, ISO_DIR, ISO_FOV, { rect: safeRect({ withPanel: false }) }); }
+function topView() { return frame(PARK_PTS, TOP_DIR, ISO_FOV, { rect: safeRect({ withPanel: false }) }); }
 const distOf = (v) => Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]);
 // 缩放范围：透视固定；等距按「看全园区」的距离定比例
-const limitsFor = (iso) => { if (!iso) return [120, 5000]; const d = distOf(isoView()); return [d * 0.3, d * 3]; };
+const limitsFor = (iso) => { if (!iso) return [120, 5000]; const d = distOf(topMode ? topView() : isoView()); return [d * 0.3, d * 3]; };
 
 // 保存 / 分享的视角：存目标点 + 方位角 + 俯角 + 可视半径（短边方向），换屏幕宽高比也是同样大小
 function specNow() {
   const off = camera.position.clone().sub(controls.target), d = off.length();
   const r = d * Math.tan(fovFor() * DEG / 2) * Math.min(1, camera.aspect);
-  return { t: [+controls.target.x.toFixed(1), +controls.target.z.toFixed(1)], az: +(Math.atan2(off.x, off.z) / DEG).toFixed(1), pol: +(Math.acos(off.y / d) / DEG).toFixed(1), r: +r.toFixed(1), iso: isoLocked };
+  return { t: [+controls.target.x.toFixed(1), +controls.target.z.toFixed(1)], az: +(Math.atan2(off.x, off.z) / DEG).toFixed(1), pol: +(Math.acos(off.y / d) / DEG).toFixed(1), r: +r.toFixed(1), iso: isoLocked, top: topMode };
 }
 function viewFromSpec(s) {
-  const fov = s.iso ? ISO_FOV : 30, a = s.az * DEG, p = s.pol * DEG;
-  const dir = s.iso ? ISO_DIR : new THREE.Vector3(Math.sin(p) * Math.sin(a), Math.cos(p), Math.sin(p) * Math.cos(a));
+  const fov = s.iso || s.top ? ISO_FOV : 30, a = s.az * DEG, p = s.pol * DEG;
+  const dir = s.top ? TOP_DIR : s.iso ? ISO_DIR : new THREE.Vector3(Math.sin(p) * Math.sin(a), Math.cos(p), Math.sin(p) * Math.cos(a));
   const d = s.r / (Math.tan(fovFor(fov) * DEG / 2) * Math.min(1, innerWidth / innerHeight));
   const T = new THREE.Vector3(s.t[0], 0, s.t[1]);
-  return { pos: T.clone().addScaledVector(dir, d).toArray(), target: T.toArray(), fov, iso: !!s.iso };
+  return { pos: T.clone().addScaledVector(dir, d).toArray(), target: T.toArray(), fov, iso: !!(s.iso || s.top), top: !!s.top };
 }
 const resolveView = (v) => (v.home ? homeView() : v.t ? viewFromSpec(v) : v);   // 兼容旧格式 {pos, target, fov, iso}
 
@@ -1255,13 +1263,14 @@ let tween = null, tweenLim = null;
 function endTween() { tween = null; if (tweenLim) { [controls.minDistance, controls.maxDistance] = tweenLim; tweenLim = null; } }
 function goTo(v, ms = 700) {
   v = resolveView(v);
+  topMode = v.iso ? (v.top ?? topMode) : false;   // 只传 iso: isoLocked 的调用（聚焦、平移、缩放）保持原来的锁定类型
   isoLocked = !!v.iso; controls.enableRotate = !isoLocked;
   // 等距（pollux 2026-11-20）：左键按住拖动 / 单指拖动改成平移视角中心（横向、竖向都行），角度保持等距不变；退出等距恢复成旋转
   controls.mouseButtons.LEFT = isoLocked ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
   controls.touches.ONE = isoLocked ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
   canvas.style.cursor = isoLocked ? "grab" : "";
   controls.screenSpacePanning = isoLocked;   // 等距：按屏幕平面平移，画面完全跟手（中心点由 cameraGuard 沿视线放回地面）；透视仍沿地面平移
-  document.body.classList.toggle("iso", isoLocked);
+  document.body.classList.toggle("iso", isoLocked); document.body.classList.toggle("top", topMode);
   const from = { pos: camera.position.clone(), target: controls.target.clone(), fov: baseFov };
   const to = { pos: new THREE.Vector3(...v.pos), target: new THREE.Vector3(...v.target), fov: v.fov };
   // 过渡期间放开距离限制，到点后再收紧（原来一开始就收紧，离开等距时第一帧会被夹回去跳一下）
@@ -1288,7 +1297,8 @@ const viewsBar = document.getElementById("views");
 function renderViewsDesktop() {
   viewsBar.innerHTML = "";
   const add = (label, cls, onClick, extra) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.onclick = onClick; if (extra) b.setAttribute("aria-label", extra); viewsBar.appendChild(b); return b; };
-  add(t("iso"), "seg" + (isoLocked ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria")).dataset.lock = t("isoLocked");
+  add(t("iso"), "seg" + (isoLocked && !topMode ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria")).dataset.lock = t("isoLocked");
+  add(t("top"), "seg" + (topMode ? " on" : ""), () => { curSlot = -1; goTo(topView()); renderViews(); }, t("topAria")).dataset.lock = t("isoLocked");
   add(t("home"), "seg", () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); });
   const sv = add(t("saveView"), "seg empty", addView, t("saveViewAria"));
   if (slots.length >= MAX_VIEWS) { sv.disabled = true; sv.title = t("viewsFull"); }
@@ -1309,7 +1319,7 @@ function renderViewsDesktop() {
 function keepVisible(p) {
   requestAnimationFrame(() => {
     const iso = isoLocked;   // 等距下选中楼栋要保持等距锁定（pollux 2026-11-20）
-    goTo({ ...frame([p], iso ? ISO_DIR : curDir(), iso ? ISO_FOV : baseFov, { dist: camera.position.distanceTo(controls.target), pad: 0 }), iso }, 600);
+    goTo({ ...frame([p], iso ? lockDir() : curDir(), iso ? ISO_FOV : baseFov, { dist: camera.position.distanceTo(controls.target), pad: 0 }), iso }, 600);
   });
 }
 // 快捷视角格（A、C 用）：空格「+」点一下存；已存的显示编号，点一下前往
@@ -1317,7 +1327,8 @@ let curSlot = -1;
 function quickViews(el, onCur) {
   el.innerHTML = "";
   const add = (label, cls, fn, aria) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.onclick = fn; if (aria) b.setAttribute("aria-label", aria); el.appendChild(b); return b; };
-  add(t("iso"), "seg" + (isoLocked ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria"));
+  add(t("iso"), "seg" + (isoLocked && !topMode ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria"));
+  add(t("top"), "seg" + (topMode ? " on" : ""), () => { curSlot = -1; goTo(topView()); renderViews(); }, t("topAria"));
   add(t("home"), "seg", () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); });
   const sv = add("+", "seg slotb empty", addView, t("saveViewAria"));   // 存视角和等距、初始并列
   if (slots.length >= MAX_VIEWS) { sv.disabled = true; sv.title = t("viewsFull"); }
@@ -1329,7 +1340,9 @@ function quickViews(el, onCur) {
 // 视角管理行（B、C 用）
 function viewRows(el) {
   const row = (nm, sub, btns) => `<div class="row"><div class="nm">${nm}<small>${sub}</small></div>${btns}</div>`;
-  let h = row(t("isoRow"), t("isoSub"), `<button type="button" class="mghost${isoLocked ? " on" : ""}" data-iso>${t(isoLocked ? "isoLocked" : "go")}</button>`)
+  const isoOn = isoLocked && !topMode;
+  let h = row(t("isoRow"), t("isoSub"), `<button type="button" class="mghost${isoOn ? " on" : ""}" data-iso>${t(isoOn ? "isoLocked" : "go")}</button>`)
+    + row(t("topRow"), t("topSub"), `<button type="button" class="mghost${topMode ? " on" : ""}" data-top>${t(topMode ? "isoLocked" : "go")}</button>`)
     + row(t("homeRow"), t("homeSub"), `<button type="button" class="mghost" data-home>${t("go")}</button>`)
     + row(t("saveView").replace(/^\+ /, ""), slots.length >= MAX_VIEWS ? t("viewsFull") : t("saveViewSub", slots.length, MAX_VIEWS), `<button type="button" class="mghost add" data-save${slots.length >= MAX_VIEWS ? " disabled" : ""} aria-label="${t("saveViewAria")}">${t("saveHere")}</button>`);
   slots.forEach((v, i) => {
@@ -1337,6 +1350,7 @@ function viewRows(el) {
   });
   el.innerHTML = h;
   el.querySelector("[data-iso]").onclick = () => { curSlot = -1; goTo(isoView()); renderViews(); };
+  el.querySelector("[data-top]").onclick = () => { curSlot = -1; goTo(topView()); renderViews(); };
   el.querySelector("[data-home]").onclick = () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); };
   el.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { const i = +b.dataset.go; curSlot = i; goTo(slots[i]); renderViews(); });
   el.querySelectorAll("[data-ow]").forEach((b) => b.onclick = () => { const i = +b.dataset.ow; slots[i] = currentView(); curSlot = i; saveSlots(); renderViews(); });
@@ -1557,7 +1571,7 @@ function showLeg(i) {
 // 出路线后整条路线（含终点楼外墙）落进可用画面；保持当前方向，等距下仍是等距
 function fitTo(pts, to = C2_PLACE) {
   const all = [...pts.map(([x, z]) => new THREE.Vector3(x, 0, z)), ...(to.ring || [to.p]).map(([x, z]) => new THREE.Vector3(x, 30, z))];
-  goTo(frame(all, isoLocked ? ISO_DIR : curDir(), isoLocked ? ISO_FOV : baseFov, { pad: 44 }));   // 留出起点、终点标签的半宽
+  goTo(frame(all, isoLocked ? lockDir() : curDir(), isoLocked ? ISO_FOV : baseFov, { pad: 44 }));   // 留出起点、终点标签的半宽
 }
 let lastRoute = null;
 function routePanel() {
@@ -1672,6 +1686,7 @@ function updateCompass() {
   needle.style.transform = `rotate(${Math.atan2((b.x - ax) * innerWidth, (b.y - ay) * innerHeight).toFixed(3)}rad)`;
 }
 function northUp() {
+  if (topMode) return;   // 俯视图本来就正北朝上
   if (isoLocked) { goTo(frame(PARK_PTS, new THREE.Vector3(0, HOME_DIR.y, Math.hypot(HOME_DIR.x, HOME_DIR.z)), 30, { rect: safeRect({ withPanel: false }) })); }
   else { const off = camera.position.clone().sub(controls.target), d = off.length(), phi = Math.acos(off.y / d); goTo({ pos: controls.target.clone().add(new THREE.Vector3(0, Math.cos(phi) * d, Math.sin(phi) * d)).toArray(), target: controls.target.toArray(), fov: baseFov, iso: false }, 500); }
   if (typeof curSlot !== "undefined") curSlot = -1;
@@ -1697,7 +1712,8 @@ addEventListener("keydown", (e) => {
     goTo({ pos: controls.target.clone().add(off).toArray(), target: controls.target.toArray(), fov: baseFov, iso: false }, 250);
   } else if (k === "n" || k === "N") northUp();
   else if (k === "0" || k === "Home") { goTo(VIEW_DEFAULT); renderViews(); }
-  else if (k === "i" || k === "I") { goTo(isoLocked ? VIEW_DEFAULT : isoView()); renderViews(); }
+  else if (k === "i" || k === "I") { goTo(isoLocked && !topMode ? VIEW_DEFAULT : isoView()); renderViews(); }
+  else if (k === "t" || k === "T") { goTo(topMode ? VIEW_DEFAULT : topView()); renderViews(); }
   else if (k === "Escape") { if (!helpBox.hidden) setHelp(false); else if (picking) setPicking(false); else if (panel.style.display === "block") document.getElementById("close").click(); return; }
   else return;
   e.preventDefault();
@@ -1706,15 +1722,15 @@ addEventListener("keydown", (e) => {
 let hashTimer = 0;
 function writeHash() {
   const s = specNow();
-  const h = s.iso ? `#v=iso,${s.t[0]},${s.t[1]},${s.r}` : `#v=${s.t[0]},${s.t[1]},${s.az},${s.pol},${s.r}`;
+  const h = s.top ? `#v=top,${s.t[0]},${s.t[1]},${s.r}` : s.iso ? `#v=iso,${s.t[0]},${s.t[1]},${s.r}` : `#v=${s.t[0]},${s.t[1]},${s.az},${s.pol},${s.r}`;
   if (location.hash !== h) try { history.replaceState(null, "", h); } catch {}
 }
 controls.addEventListener("change", () => { if (!hashTimer) hashTimer = setTimeout(() => { hashTimer = 0; writeHash(); }, 400); });   // 节流：阻尼收尾会一直发 change，不能用防抖
 function readHash() {
   const m = /^#v=([^&]+)/.exec(location.hash); if (!m) return null;
-  const a = m[1].split(","), iso = a[0] === "iso", n = (iso ? a.slice(1) : a).map(Number);
+  const a = m[1].split(","), top = a[0] === "top", iso = top || a[0] === "iso", n = (iso ? a.slice(1) : a).map(Number);
   if (n.some((x) => !Number.isFinite(x)) || n.length !== (iso ? 3 : 5)) return null;
-  return iso ? { t: [n[0], n[1]], az: 0, pol: 0, r: n[2], iso: true } : { t: [n[0], n[1]], az: n[2], pol: Math.min(83, Math.max(1, n[3])), r: n[4], iso: false };
+  return iso ? { t: [n[0], n[1]], az: 0, pol: 0, r: n[2], iso: true, top } : { t: [n[0], n[1]], az: n[2], pol: Math.min(83, Math.max(1, n[3])), r: n[4], iso: false };
 }
 addEventListener("hashchange", () => { const s = readHash(); if (s) { goTo(s); renderViews(); } });
 // 标签上的手势：楼号标签可以点，但会挡住画布的滚轮和拖动。滚轮直接转给画布；按下后移动超过 5 px（或第二根手指落在标签上）就把这次按下转给画布，变成旋转 / 平移 / 双指缩放；不动就照常是点标签
@@ -1732,8 +1748,8 @@ const ZOOMS = [1, 2, 3];
 let fitD = 0, fitKey = "";
 function fitDist() {
   const off = camera.position.clone().sub(controls.target);
-  const key = [isoLocked, Math.round(Math.atan2(off.x, off.z) / DEG / 5), Math.round(Math.acos(off.y / off.length()) / DEG / 5), innerWidth, innerHeight, document.body.style.getPropertyValue("--sheetH")].join();
-  if (key !== fitKey) { fitKey = key; fitD = distOf(isoLocked ? isoView() : frame(PARK_PTS, curDir(), 30, { rect: safeRect({ withPanel: false }) })); }
+  const key = [isoLocked, topMode, Math.round(Math.atan2(off.x, off.z) / DEG / 5), Math.round(Math.acos(off.y / off.length()) / DEG / 5), innerWidth, innerHeight, document.body.style.getPropertyValue("--sheetH")].join();
+  if (key !== fitKey) { fitKey = key; fitD = distOf(isoLocked ? (topMode ? topView() : isoView()) : frame(PARK_PTS, curDir(), 30, { rect: safeRect({ withPanel: false }) })); }
   return fitD;
 }
 const zoomRatio = () => fitDist() / camera.position.distanceTo(controls.target);   // 当前是几倍
@@ -1782,6 +1798,22 @@ if (!window.OCT_FOCUS) { const hs = readHash(); goTo(hs || VIEW_DEFAULT, 0); ren
 renderer.setAnimationLoop((now) => { if (tween) tween(now); controls.update(); cameraGuard(); renderer.render(scene, camera); placeLabels(); updateCompass(); updateZoomUI(); });
 // 详情卡开关 → body.card（手机面板据此切换首页 / 详情）
 new MutationObserver(() => { const on = panel.style.display === "block"; if (on !== document.body.classList.contains("card")) { document.body.classList.toggle("card", on); onCard(on); } }).observe(panel, { attributes: true, attributeFilter: ["style"] });
+// 右下角数据来源署名：≥ 900 宽时如果会碰到底部居中的工具条，就收进工具条右边和缩放 / 指北针那一列之间、折成多行（pollux 2026-11-20）
+{
+  const attrB = document.querySelector("body > .attr");
+  const fitAttr = () => {
+    if (!attrB) return;
+    attrB.style.cssText = "";
+    if (innerWidth < 900 || getComputedStyle(viewsBar).display === "none") return;
+    const v = viewsBar.getBoundingClientRect(), a = attrB.getBoundingClientRect();
+    if (a.left >= v.right + 12) return;
+    attrB.style.cssText = `right:72px; white-space:normal; text-align:right; max-width:${Math.max(140, innerWidth - 72 - v.right - 12)}px`;
+  };
+  addEventListener("resize", fitAttr);
+  new MutationObserver(fitAttr).observe(viewsBar, { childList: true, subtree: true, characterData: true });
+  document.getElementById("langBtn").addEventListener("click", () => requestAnimationFrame(fitAttr));
+  requestAnimationFrame(fitAttr);
+}
 window.__ready = true;
 
 // ---------- 从机场 / 火车站 / 香港口岸怎么来（oct-loft-transit 会话；pollux 2026-11-20 选方案 B） ----------
@@ -1835,16 +1867,18 @@ window.__ready = true;
   body.trmode #compass { opacity:.3; pointer-events:none; }
   #pc .trv .nd.dest .nm { font-size:17px; color:var(--brand); }
   #pc .trv .nd.dest .dot.end { width:20px; height:20px; margin-top:1px; box-shadow:0 0 0 3px var(--accent); }
-  /* 第一层：组标题（图标 + 名称）+ 路线卡片网格 */
-  #pc .trv .gh { display:flex; align-items:center; gap:8px; font-weight:650; font-size:15px; padding:2px 0 8px; color:var(--ink); }
-  #pc .trv .gh svg { color:var(--brand); flex:none; }
+  /* 第一层：路线卡片网格 */
   #pc .trv .hc { display:flex; flex-direction:column; align-items:flex-start; gap:4px; width:100%; text-align:left; padding:10px 12px; margin:0 0 8px; border:1px solid var(--line); border-radius:8px; background:var(--surface); cursor:pointer; color:var(--ink); min-height:44px; }
   #pc .trv .hc:hover { border-color:var(--segline); background:var(--canvas); }
   #pc .trv .hc .nm { font-weight:650; font-size:15px; } #pc .trv .hc .tm { font-weight:650; font-size:14px; font-variant-numeric:tabular-nums; } #pc .trv .hc .tm small { font-weight:400; color:var(--muted); font-size:13px; }
-  #pc .trv .grp + .grp { margin-top:14px; }
   #pc .trv .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
   #pc .trv .grid .hc { margin:0; } #pc .trv .chain { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--muted); flex-wrap:nowrap; }
-  @media (min-width: 900px) { #panel.tr-wide { width:min(760px, calc(100vw - 32px - 452px)); } }
+  /* 第一层 tab：图标 + 名称，选中 lime（同页面其他分段控件） */
+  #pc .trv .tabs { display:flex; gap:6px; margin:6px 0 12px; }
+  #pc .trv .tab { flex:1 1 0; min-width:0; min-height:44px; padding:0 6px; border:none; border-radius:8px; background:var(--soft); color:var(--muted); font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; }
+  #pc .trv .tab svg { flex:none; }
+  #pc .trv .tab.on { background:var(--accent); color:var(--ink); font-weight:650; }
+  #pc .trv .tab:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   @media (max-width: 640px) {
         #pc .trv .grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   }
@@ -1858,19 +1892,19 @@ window.__ready = true;
   const ln = (l) => `<span class="ln" style="background:${TR.lines[l].color};color:${TR.lines[l].text || "#fff"}">${esc(tz(TR.lines[l]))}</span>`;
   const walkIcon = `<svg width="12" height="16" viewBox="0 0 12 16" aria-hidden="true"><circle cx="7" cy="2.2" r="1.8" fill="#5a514a"/><path d="M6 5 3.5 9.5 1.5 10M6 5l1.5 4 2.5 1M6.3 8.5 5 15.5M7 9.5l2 6" stroke="#5a514a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const total = (h) => h.min + walk.min;
-  let trView = null, trGroup = null;   // trGroup：手机 picker 选的那一组（null = 三组都列）   // null = 没打开；"list"；或枢纽 id
+  let trView = null, trGroup = TR.groups[0].id;   // trView：null = 没打开；"list"；或枢纽 id。trGroup：当前 tab（机场 / 火车站 / 香港口岸），手机 picker 也改它
 
-  // 第一层：机场 / 火车站 / 香港口岸三组并列分别展示，每组一个图标标题 + 路线卡片网格（pollux 2026-11-20 选 B 分组网格）
+  // 第一层：机场 / 火车站 / 香港口岸 3 个 tab（pollux 2026-11-20：全部放一个画面太密），tab 下是该组的路线卡片网格
   const GICON = {
     air: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M10.5 3.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5V9l7 4v2l-7-2v5l2 1.5V21l-3.5-1L8.5 21v-1.5l2-1.5v-5l-7 2v-2l7-4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
     rail: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="6" y="3" width="12" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 10h12M9 14h.01M15 14h.01M8.5 17 6.5 21M15.5 17l2 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
     port: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12M7 21v-7h10v7M3 21h18M12 14v7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
   };
   const hubCard = (h) => `<button type="button" class="hc" data-hub="${h.id}"><span class="nm">${esc(tz(h))}</span><span class="tm">${t("trTotal", total(h))}<small> · ${t("trFare", h.fare)}</small></span><span class="chain">${h.legs.map(([l]) => ln(l)).join("<span>›</span>")}<span>›</span>${walkIcon}</span></button>`;
-  const grpHead = (g) => `<div class="gh">${GICON[g.id]}<span>${esc(tz(g))}</span></div>`;
   function listHtml() {
-    return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2>`
-      + `<section>${TR.groups.filter((g) => !trGroup || g.id === trGroup).map((g) => `<div class="grp">${grpHead(g)}<div class="grid">${TR.hubs.filter((h) => h.g === g.id).map(hubCard).join("")}</div></div>`).join("")}<p class="note">${t("trFoot")}</p></section>`;
+    const tab = (g) => `<button type="button" role="tab" class="tab${g.id === trGroup ? " on" : ""}" aria-selected="${g.id === trGroup}" data-grp="${g.id}" title="${esc(tz(g))}">${GICON[g.id].replace(/width="22" height="22"/, 'width="18" height="18"')}<span>${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}</span></button>`;   // tab 上只写短名，括号里的说明放 title
+    return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2><div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
+      + `<section><div class="grid" role="tabpanel">${TR.hubs.filter((h) => h.g === trGroup).map(hubCard).join("")}</div><p class="note">${t("trFoot")}</p></section>`;
   }
   function hubHtml(h) {
     const node = (nm, sub, end) => `<div class="nd${end ? " dest" : ""}"><div class="rail"><div class="dot${end ? " end" : ""}"></div></div><div class="tx"><div class="nm">${nm}</div>${sub ? `<div class="k">${sub}</div>` : ""}</div></div>`;
@@ -1893,12 +1927,12 @@ window.__ready = true;
     trView = v; setMode();
     const h = TR.hubs.find((x) => x.id === v);
     pc.innerHTML = `<div class="trv">${h ? hubHtml(h) : listHtml()}</div>`;
-    panel.classList.toggle("tr-wide", !h);
     pc.querySelectorAll("[data-hub]").forEach((b) => (b.onclick = () => { trRender(b.dataset.hub); panel.scrollTop = 0; sheetBody.scrollTop = 0; pc.querySelector("button")?.focus({ preventScroll: true }); }));
+    pc.querySelectorAll("[data-grp]").forEach((b) => (b.onclick = () => { trGroup = b.dataset.grp; trRender("list"); document.dispatchEvent(new Event("tr:group")); pc.querySelector(`[data-grp="${trGroup}"]`)?.focus({ preventScroll: true }); }));
     pc.querySelector("[data-go]")?.addEventListener("click", () => { trView = null; setMode(); routeFrom(exitB.p); });
   }
   function trOpen(g) {
-    trGroup = typeof g === "string" ? g : null;
+    if (typeof g === "string") trGroup = g;   // 不带参数时停在上次的 tab
     if (picking) setPicking(false);
     select(null);
     trRender("list");
@@ -1917,7 +1951,7 @@ window.__ready = true;
   label();
   if (MOBILE) setLevel(level);   // 首页收起档的高度按新加的入口按钮重算
   // 别的内容（楼栋详情、导航结果）替换了卡片，或卡片关掉，交通视图就算关闭
-  new MutationObserver(() => { if (!pc.querySelector(".trv")) panel.classList.remove("tr-wide"); if (trView && (panel.style.display !== "block" || !pc.querySelector(".trv"))) { trView = null; setMode(); } }).observe(pc, { childList: true });
+  new MutationObserver(() => { if (trView && (panel.style.display !== "block" || !pc.querySelector(".trv"))) { trView = null; setMode(); } }).observe(pc, { childList: true });
   new MutationObserver(() => { if (panel.style.display !== "block" && trView) { trView = null; setMode(); } }).observe(panel, { attributes: true, attributeFilter: ["style"] });
   // 切换语言：main.js 的 applyLang 会重画楼栋 / 路线卡；交通卡在它之后按新语言重画
   const lb = document.getElementById("langBtn");
@@ -1966,6 +2000,7 @@ window.__ready = true;
     addEventListener("keydown", (e) => { if (e.key === "Escape" && openMenu) { const b = openMenu[0]; close(); b.focus(); } });
     // 交通视图开关、换语言时刷新按钮文字
     new MutationObserver(drawTrBtn).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    document.addEventListener("tr:group", drawTrBtn);   // 卡片里切 tab 时同步按钮
     lb.addEventListener("click", () => { drawLayBtn(); drawTrBtn(); if (openMenu) (openMenu[1] === layMenu ? drawLay : drawTr)(); });
     drawLayBtn(); drawTrBtn();
     window.__picker = { lay: () => toggle(pkLay, layMenu, drawLay), tr: () => toggle(pkTr, trMenu, drawTr), pick: (g) => { close(); trOpen(g); } };   // 截图验证用

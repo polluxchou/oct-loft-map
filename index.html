@@ -230,6 +230,40 @@
   #zoomCtl button:focus-visible { outline:2px solid var(--brand); outline-offset:-2px; }
   @media (max-width: 899px) { #zoomCtl { bottom:auto; top:68px; } }
   @media (max-width: 640px) { #zoomCtl { right:10px; top:calc(var(--st, 0px) + 8px + 54px + 10px + 44px + 8px); } #zoomCtl button { height:44px; } body.help-open #zoomCtl { visibility:hidden; } }
+
+  /* ===== 手机：左上角下拉 picker（图层 / 交通），pollux 2026-11-20 ===== */
+  #mpick { display:none; }
+  @media (max-width: 640px) {
+    #mpick { display:flex; gap:8px; position:fixed; left:10px; top:calc(var(--st, 0px) + 8px + 54px + 10px); z-index:5; }
+    .pkw { position:static; }   /* 菜单以 #mpick 定位，两个菜单都从左边对齐，不伸出屏幕 */
+    .pk { height:44px; display:inline-flex; align-items:center; gap:6px; padding:0 10px; background:var(--surface); border:1px solid var(--line); border-radius:10px; font:inherit; font-size:14px; color:var(--ink); cursor:pointer; white-space:nowrap; }
+    .pk .n { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+    .pk .ic { display:inline-flex; } .pk .ic:empty { display:none; }
+    .pk .cv { color:var(--muted); transition:transform .15s; }
+    .pk[aria-expanded="true"] { border-color:var(--ink); }
+    .pk[aria-expanded="true"] .cv { transform:rotate(180deg); }
+    .pk.sel { background:var(--accent); border-color:#829700; }   /* 已选某一组交通：选中态用 lime */
+    .pk.sel .cv { color:var(--ink); }
+    .pk:focus-visible, .pkmenu .row:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+    .pkmenu { position:absolute; left:0; top:52px; width:max-content; min-width:252px; max-width:calc(100vw - 20px); background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:6px; }
+    .pkmenu .hd { font-size:12px; color:var(--muted); padding:6px 10px 4px; }
+    .pkmenu .sep { height:1px; background:var(--line); margin:4px 10px; }
+    .pkmenu .row { display:flex; align-items:center; gap:12px; width:100%; min-height:48px; padding:0 10px; border:none; background:none; border-radius:8px; font:inherit; font-size:15px; color:var(--ink); text-align:left; cursor:pointer; }
+    .pkmenu .row:active { background:var(--soft); }
+    .pkmenu .row > svg:first-child, .pkmenu .row .gi { flex:none; display:inline-flex; }
+    .pkmenu .row .nm { flex:1; }
+    .pkmenu .row .nm small { display:block; font-size:12px; color:var(--muted); }
+    .pkmenu .ck { flex:none; width:22px; height:22px; border-radius:6px; border:1.5px solid var(--segline); display:grid; place-items:center; color:transparent; }
+    .pkmenu .row[aria-checked="true"] .ck { background:var(--ink); border-color:var(--ink); color:#fff; }
+    .pkmenu .row.emph[aria-checked="true"] .ck { background:var(--brand); border-color:var(--brand); }
+    .pkmenu .row[aria-checked="false"]:not(.emph) { color:var(--muted); }
+    .pkmenu .row[aria-checked="false"]:not(.emph) > svg:first-child { opacity:.35; }
+    .pkmenu .row .go { flex:none; color:var(--muted); font-size:18px; }
+    .pkmenu .row[aria-current="true"] { background:var(--accent); }
+    body.help-open #mpick { visibility:hidden; }
+    /* 底部面板里原来的「图层」「交通」两节由 picker 取代，手机上不再重复 */
+    .more > section:has(#legendSlot), .more > section.trsec { display:none; }
+  }
 </style>
 <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
 </head>
@@ -243,6 +277,12 @@
   <div class="tools" id="tools"><div class="legend" id="legend" role="group" data-i18n-aria="layers"></div><span class="sep" aria-hidden="true"></span><div id="trSlot"></div></div>
   <div class="attr" data-i18n="footer"></div>
 </header>
+<div id="mpick">
+  <div class="pkw"><button type="button" class="pk" id="pkLay" aria-haspopup="true" aria-expanded="false" aria-controls="pkLayMenu"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5Z"/><path d="m2 12.5 10 5 10-5"/><path d="m2 17 10 5 10-5"/></svg><span class="t" id="pkLayT"></span><span class="n" id="pkLayN"></span><svg class="cv" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="pkmenu" id="pkLayMenu" role="group" hidden></div></div>
+  <div class="pkw"><button type="button" class="pk" id="pkTr" aria-haspopup="menu" aria-expanded="false" aria-controls="pkTrMenu"><span class="ic" id="pkTrI"></span><span class="t" id="pkTrT"></span><svg class="cv" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="pkmenu" id="pkTrMenu" role="menu" hidden></div></div>
+</div>
 <div id="panel"><button class="x" id="close" data-i18n-aria="close" aria-label="关闭">×</button><div id="pc"></div></div>
 <nav id="views" data-i18n-aria="viewsNav" aria-label="视角与导航"></nav>
 <div class="attr-m" data-i18n="footerShort"></div>
@@ -1122,7 +1162,7 @@ let _safe = null, _safeAt = 0;
 function safeRect({ withPanel = true } = {}) {
   let R = { left: 0, top: 0, right: innerWidth, bottom: innerHeight }; const g = 12;
   const box = (el) => { if (!el) return null; const cs = getComputedStyle(el); if (cs.display === "none" || cs.visibility === "hidden") return null; const r = el.getBoundingClientRect(); return r.width && r.height ? r : null; };
-  const obs = [box(document.querySelector("header")), box(document.getElementById("views"))];   // 手机署名条 .attr-m 跟着面板做过渡动画，中途位置不可靠；它总在面板正上方，由下面的面板 / 55% 线一并扣掉
+  const obs = [box(document.querySelector("header")), box(document.getElementById("views")), (() => { const r = box(document.getElementById("mpick")); return r && { left: r.left, right: r.right, top: r.top, bottom: r.bottom + 28 }; })()];   // mpick：手机左上角 picker 一行；多让 28 px，楼号标签浮在屋顶上方，只让楼体会被压到   // 手机署名条 .attr-m 跟着面板做过渡动画，中途位置不可靠；它总在面板正上方，由下面的面板 / 55% 线一并扣掉
   const sh = box(document.getElementById("sheet"));
   if (sh) { const h = parseFloat(document.body.style.getPropertyValue("--sheetH")) || sh.height; obs.push({ left: 0, right: innerWidth, top: innerHeight - h, bottom: innerHeight }); }   // 面板高度有过渡动画，按目标高度算
   if (withPanel && !panel.closest("#sheet")) obs.push(box(panel));
@@ -1666,7 +1706,7 @@ window.__ready = true;
   const ln = (l) => `<span class="ln" style="background:${TR.lines[l].color};color:${TR.lines[l].text || "#fff"}">${esc(tz(TR.lines[l]))}</span>`;
   const walkIcon = `<svg width="12" height="16" viewBox="0 0 12 16" aria-hidden="true"><circle cx="7" cy="2.2" r="1.8" fill="#5a514a"/><path d="M6 5 3.5 9.5 1.5 10M6 5l1.5 4 2.5 1M6.3 8.5 5 15.5M7 9.5l2 6" stroke="#5a514a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const total = (h) => h.min + walk.min;
-  let trView = null;   // null = 没打开；"list"；或枢纽 id
+  let trView = null, trGroup = null;   // trGroup：手机 picker 选的那一组（null = 三组都列）   // null = 没打开；"list"；或枢纽 id
 
   // 第一层：机场 / 火车站 / 香港口岸三组并列分别展示，每组一个图标标题 + 路线卡片网格（pollux 2026-11-20 选 B 分组网格）
   const GICON = {
@@ -1678,7 +1718,7 @@ window.__ready = true;
   const grpHead = (g) => `<div class="gh">${GICON[g.id]}<span>${esc(tz(g))}</span></div>`;
   function listHtml() {
     return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2>`
-      + `<section>${TR.groups.map((g) => `<div class="grp">${grpHead(g)}<div class="grid">${TR.hubs.filter((h) => h.g === g.id).map(hubCard).join("")}</div></div>`).join("")}<p class="note">${t("trFoot")}</p></section>`;
+      + `<section>${TR.groups.filter((g) => !trGroup || g.id === trGroup).map((g) => `<div class="grp">${grpHead(g)}<div class="grid">${TR.hubs.filter((h) => h.g === g.id).map(hubCard).join("")}</div></div>`).join("")}<p class="note">${t("trFoot")}</p></section>`;
   }
   function hubHtml(h) {
     const node = (nm, sub, end) => `<div class="nd${end ? " dest" : ""}"><div class="rail"><div class="dot${end ? " end" : ""}"></div></div><div class="tx"><div class="nm">${nm}</div>${sub ? `<div class="k">${sub}</div>` : ""}</div></div>`;
@@ -1705,7 +1745,8 @@ window.__ready = true;
     pc.querySelectorAll("[data-hub]").forEach((b) => (b.onclick = () => { trRender(b.dataset.hub); panel.scrollTop = 0; sheetBody.scrollTop = 0; pc.querySelector("button")?.focus({ preventScroll: true }); }));
     pc.querySelector("[data-go]")?.addEventListener("click", () => { trView = null; setMode(); routeFrom(exitB.p); });
   }
-  function trOpen() {
+  function trOpen(g) {
+    trGroup = typeof g === "string" ? g : null;
     if (picking) setPicking(false);
     select(null);
     trRender("list");
@@ -1731,6 +1772,52 @@ window.__ready = true;
   let keep = null;
   lb.addEventListener("click", () => { keep = trView; }, true);
   lb.addEventListener("click", () => { label(); if (keep) { trRender(keep); panel.style.display = "block"; } keep = null; });
+
+  // ---------- 手机：左上角下拉 picker（pollux 2026-11-20） ----------
+  {
+    const pkLay = document.getElementById("pkLay"), pkTr = document.getElementById("pkTr");
+    const layMenu = document.getElementById("pkLayMenu"), trMenu = document.getElementById("pkTrMenu");
+    secM.classList.add("trsec");
+    const CK = '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 6.2 5 8.6l4.5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const legBtn = (tk) => legendEl.querySelector(`[data-k="${tk}"]`);
+    const on = (tk) => legBtn(tk).getAttribute("aria-pressed") === "true";
+    const pkT = { zh: { btn: "交通", hd: "地图上显示", n: (k) => `${k} 条路线`, hdT: "从哪里来" }, en: { btn: "Transit", hd: "Show on map", n: (k) => `${k} route${k > 1 ? "s" : ""}`, hdT: "Coming from" } };
+    function drawLay() {
+      const rows = LEG.map(([k, tk, c], i) => `${i === 1 ? '<div class="sep"></div><div class="hd">' + pkT[lang].hd + "</div>" : ""}<button type="button" class="row${i ? "" : " emph"}" role="menuitemcheckbox" aria-checked="${on(tk)}" data-k="${tk}"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="${c === "currentColor" ? "#6d3425" : c}" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${ICON[k]}</svg><span class="nm">${t(tk)}</span><span class="ck">${CK}</span></button>`).join("");
+      layMenu.innerHTML = rows;
+      layMenu.querySelectorAll(".row").forEach((b) => (b.onclick = () => { legBtn(b.dataset.k).click(); b.setAttribute("aria-checked", String(on(b.dataset.k))); drawLayBtn(); }));
+      drawLayBtn();
+    }
+    // 按钮上的计数只算 5 个显示开关（「强调园区楼栋」不是显示 / 隐藏）
+    function drawLayBtn() { document.getElementById("pkLayT").textContent = t("layersT"); const ks = LEG.slice(1).map(([, tk]) => tk); document.getElementById("pkLayN").textContent = `${ks.filter(on).length}/${ks.length}`; }
+    const cnt = (g) => TR.hubs.filter((h) => h.g === g.id).length;
+    function drawTr() {
+      trMenu.innerHTML = `<div class="hd">${pkT[lang].hdT}</div>` + TR.groups.map((g) => `<button type="button" class="row" role="menuitem" data-g="${g.id}"${trView && trGroup === g.id ? ' aria-current="true"' : ""}><span class="gi">${GICON[g.id]}</span><span class="nm">${esc(tz(g))}<small>${pkT[lang].n(cnt(g))}</small></span><span class="go" aria-hidden="true">›</span></button>`).join("");
+      trMenu.querySelectorAll(".row").forEach((b) => (b.onclick = () => { close(); trOpen(b.dataset.g); }));
+      drawTrBtn();
+    }
+    // 按钮：没打开交通视图时写「交通」；选了某一组就换成那一组的图标 + 名字，用 lime 选中态
+    const short = (g) => tz(g).replace(/\s*[（(].*[)）]\s*$/, "");
+    function drawTrBtn() {
+      const g = trView && TR.groups.find((x) => x.id === trGroup);
+      pkTr.classList.toggle("sel", !!g);
+      document.getElementById("pkTrI").innerHTML = g ? GICON[g.id].replace(/width="22" height="22"/, 'width="20" height="20"') : "";
+      document.getElementById("pkTrT").textContent = g ? short(g) : pkT[lang].btn;
+    }
+    let openMenu = null;
+    function close() { if (!openMenu) return; openMenu[1].hidden = true; openMenu[0].setAttribute("aria-expanded", "false"); openMenu = null; }
+    function toggle(btn, menu, draw) { const was = openMenu && openMenu[0] === btn; close(); if (was) return; draw(); menu.hidden = false; btn.setAttribute("aria-expanded", "true"); openMenu = [btn, menu]; }
+    pkLay.onclick = (e) => { e.stopPropagation(); toggle(pkLay, layMenu, drawLay); };
+    pkTr.onclick = (e) => { e.stopPropagation(); toggle(pkTr, trMenu, drawTr); };
+    // 点菜单外面只收起菜单，不顺带选中地图上的楼
+    addEventListener("pointerdown", (e) => { if (openMenu && !e.target.closest("#mpick")) { close(); if (e.target.closest("#c, #labels")) { e.stopPropagation(); e.preventDefault(); } } }, true);
+    addEventListener("keydown", (e) => { if (e.key === "Escape" && openMenu) { const b = openMenu[0]; close(); b.focus(); } });
+    // 交通视图开关、换语言时刷新按钮文字
+    new MutationObserver(drawTrBtn).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    lb.addEventListener("click", () => { drawLayBtn(); drawTrBtn(); if (openMenu) (openMenu[1] === layMenu ? drawLay : drawTr)(); });
+    drawLayBtn(); drawTrBtn();
+    window.__picker = { lay: () => toggle(pkLay, layMenu, drawLay), tr: () => toggle(pkTr, trMenu, drawTr), pick: (g) => { close(); trOpen(g); } };   // 截图验证用
+  }
   window.__transit = { open: trOpen, show: (v) => { trOpen(); if (v !== "list") trRender(v); }, level: (n) => setLevel(n) };   // 截图验证用
 }
 

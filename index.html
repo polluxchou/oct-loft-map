@@ -195,6 +195,32 @@
   @media (max-width: 640px) { #compass { right:10px; top:calc(var(--st, 0px) + 8px + 54px + 10px); } }
   .lb.hit { touch-action:none; }   /* 标签上的手势交给画布（main.js 转发），不让浏览器拿去缩放页面 */
   #labels { -webkit-user-select:none; user-select:none; }   /* 从标签上开始拖动时不选中文字 */
+
+  /* ===== 顶栏收紧（pollux 2026-11-20）：功能说明收进「?」；图层 6 个图标缩小一半，和「从机场 / 车站 / 口岸怎么来」并成两组工具；数据来源移到右下角 ===== */
+  header .top { gap:8px; }
+  #helpBtn { margin-left:auto; flex:none; width:32px; height:32px; border-radius:50%; border:1px solid var(--segline); background:var(--surface); color:var(--muted); font-size:15px; font-weight:650; cursor:pointer; padding:0; line-height:1; }
+  #helpBtn[aria-expanded="true"] { background:var(--ink); border-color:var(--ink); color:#fff; }
+  #helpBtn:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+  #help p { margin:6px 0 0; font-size:13px; color:var(--muted); }
+  #help p.m { display:none; }
+  .tools { display:flex; align-items:center; gap:10px; margin-top:8px; padding-top:8px; border-top:1px solid var(--line); flex-wrap:wrap; }
+  .tools .legend { margin:0; padding:0; border:none; gap:4px; justify-content:flex-start; flex:none; }
+  .tools .legend .seg.icon { width:22px; height:22px; min-height:22px; border-radius:5px; }
+  .tools .legend .seg.icon svg { width:14px; height:14px; }
+  .tools .sep { width:1px; height:18px; background:var(--line); flex:none; }
+  .tools .tr-open { min-height:22px; padding:0 8px; border-radius:5px; background:var(--soft); text-decoration:none; font-size:12px; white-space:nowrap; }
+  .tools .tr-open:hover { background:var(--seg); }
+  body > .attr { position:fixed; right:16px; bottom:8px; margin:0; font-size:11px; color:var(--muted); background:rgba(245,245,245,.88); padding:1px 6px; border-radius:4px; max-width:calc(100vw - 32px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; z-index:1; }
+  @media (min-width: 900px) { #compass { bottom:36px; } }   /* 给右下角的数据来源让位 */
+  @media (max-width: 899px) and (min-width: 641px) { body > .attr { bottom:78px; } }   /* 底部工具条上方 */
+  @media (max-width: 640px) {
+    .attr-m { left:auto; right:10px; max-width:calc(100vw - 20px); }
+    #helpBtn { pointer-events:auto; width:44px; height:44px; border-radius:10px; border-color:var(--line); font-size:18px; }
+    #help { pointer-events:auto; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:4px 12px 10px; margin-top:8px; }
+    #help p.d { display:none; } #help p.m { display:block; }
+    .tools { display:none; }   /* 手机：图层在底部面板里，交通入口也在面板里 */
+    body.help-open #compass { visibility:hidden; }   /* 说明展开时指北针让位 */
+  }
 </style>
 <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
 </head>
@@ -202,10 +228,10 @@
 <canvas id="c"></canvas>
 <div id="labels"></div>
 <header>
-  <div class="top"><h1>OCT-LOFT</h1><div id="lang"><button type="button" id="langBtn"></button></div></div>
+  <div class="top"><h1>OCT-LOFT</h1><button type="button" id="helpBtn" aria-expanded="false" aria-controls="help" data-i18n-aria="help" aria-label="使用说明">?</button><div id="lang"><button type="button" id="langBtn"></button></div></div>
   <div class="hub" data-i18n="hub"></div>
-  <p data-i18n="intro"></p>
-  <div class="legend" id="legend" role="group" data-i18n-aria="layers"></div>
+  <div id="help" hidden><p class="d" data-i18n="intro"></p><p class="m" data-i18n="introM"></p></div>
+  <div class="tools" id="tools"><div class="legend" id="legend" role="group" data-i18n-aria="layers"></div><span class="sep" aria-hidden="true"></span><div id="trSlot"></div></div>
   <div class="attr" data-i18n="footer"></div>
 </header>
 <div id="panel"><button class="x" id="close" data-i18n-aria="close" aria-label="关闭">×</button><div id="pc"></div></div>
@@ -440,7 +466,7 @@ const I18N = {
     navNotes: "从起点就近接入路网，走到 C2 外墙 25 m 内的路口为止。园区内小路以 OSM 为准，入口、门禁、单行和台阶没有核实。",
     repick: "重新选起点", clearRoute: "清除路线", start: "起点",
     timeline: "时间线", refs: "相关报道", noRefs: "暂无公开报道", more: (n) => `更多 ${n} 条`, approx: "约 ", noLink: "条款限制深链，不放链接", b_推断: "推断", b_未证实: "未证实", refsFoot: "只列标题、日期、出处和我们写的一句话摘要，点击跳到原文。",
-    compass: "指北针：点一下回到正北朝上", compassTip: "指北针：点一下回到正北朝上。键盘：方向键平移，+/- 缩放，Q/E 旋转，N 正北，0 看全园区，I 等距，Esc 关闭",
+    help: "使用说明", compass: "指北针：点一下回到正北朝上", compassTip: "指北针：点一下回到正北朝上。键盘：方向键平移，+/- 缩放，Q/E 旋转，N 正北，0 看全园区，I 等距，Esc 关闭",
   },
   en: {
     footerShort: "© OpenStreetMap contributors (ODbL) · indicative", slotMenuT: (i) => `View ${i}`, overwrite: "Overwrite", del: "Delete", viewsTab: "Views", go: "Go", isoRow: "Isometric view", isoSub: "Fixed angle; pan and zoom only", homeRow: "Start view", homeSub: "Back to the whole park", emptySlot: "Empty", saveHere: "+ Save current", layersT: "Layers", grab: "Expand or collapse the panel", introM: "Drag to rotate; pinch to zoom and pan. Tap buildings, metro exits or bus stops for details.", 
@@ -463,7 +489,7 @@ const I18N = {
     navNotes: "The route joins the nearest path from your start point and ends at a junction within 25 m of C2. Paths inside the park follow OSM; entrances, gates, one-way rules and steps have not been checked.",
     repick: "Pick a new start", clearRoute: "Clear route", start: "Start",
     timeline: "Timeline", refs: "Related coverage", noRefs: "No public coverage found yet", more: (n) => `${n} more`, approx: "c. ", noLink: "no deep link (site terms)", b_推断: "inferred", b_未证实: "unconfirmed", refsFoot: "Titles, dates, sources and our one-line summaries only; links open the original.",
-    compass: "Compass: tap to turn north up", compassTip: "Compass: tap to turn north up. Keys: arrows pan, +/- zoom, Q/E rotate, N north, 0 whole park, I isometric, Esc close",
+    help: "How to use", compass: "Compass: tap to turn north up", compassTip: "Compass: tap to turn north up. Keys: arrows pan, +/- zoom, Q/E rotate, N north, 0 whole park, I isometric, Esc close",
   },
 };
 const LANG_KEY = "octloft.lang";
@@ -984,11 +1010,16 @@ function applyLayout() {
     document.getElementById("attrSlot").appendChild(attrEl);
     document.getElementById("panelSlot").appendChild(panel);
   } else {
-    headerEl.appendChild(legendEl); headerEl.appendChild(attrEl);
+    document.getElementById("tools").prepend(legendEl); document.body.appendChild(attrEl);   // 桌面：图层图标回到顶栏工具行；数据来源放右下角
     document.body.insertBefore(panel, document.getElementById("views"));
   }
 }
 applyLayout();
+// 「?」使用说明：点一下展开 / 收起；点别处或按 Esc 收起
+const helpBtn = document.getElementById("helpBtn"), helpBox = document.getElementById("help");
+function setHelp(on) { helpBox.hidden = !on; helpBtn.setAttribute("aria-expanded", String(on)); document.body.classList.toggle("help-open", on); }
+helpBtn.onclick = (e) => { e.stopPropagation(); setHelp(helpBox.hidden); };
+addEventListener("pointerdown", (e) => { if (!helpBox.hidden && !helpBox.contains(e.target) && e.target !== helpBtn) setHelp(false); }, true);
 MQ.addEventListener("change", (e) => {
   MOBILE = e.matches; applyLayout();
   Object.assign(HOME, MOBILE ? HOME_M : HOME_D); Object.assign(VIEW_DEFAULT, HOME);
@@ -1201,7 +1232,7 @@ addEventListener("keydown", (e) => {
   } else if (k === "n" || k === "N") northUp();
   else if (k === "0" || k === "Home") { goTo(VIEW_DEFAULT); renderViews(); }
   else if (k === "i" || k === "I") { goTo(isoLocked ? VIEW_DEFAULT : isoView()); renderViews(); }
-  else if (k === "Escape") { if (picking) setPicking(false); else if (panel.style.display === "block") document.getElementById("close").click(); return; }
+  else if (k === "Escape") { if (!helpBox.hidden) setHelp(false); else if (picking) setPicking(false); else if (panel.style.display === "block") document.getElementById("close").click(); return; }
   else return;
   e.preventDefault();
 });
@@ -1363,7 +1394,7 @@ window.__ready = true;
   const mkOpen = () => Object.assign(document.createElement("button"), { type: "button", className: "tr-open", onclick: trOpen });
   const openH = mkOpen(), openM = mkOpen();
   // 桌面：简介那段文字后面的一行链接；手机：不放进收起时露出的主操作区，放在展开后「园区」简介一节
-  const intro = headerEl.querySelector("p"); intro.after(openH);
+  document.getElementById("trSlot").appendChild(openH);   // 桌面：顶栏工具行第二组（和图层图标并列）
   const secM = document.createElement("section"), h3M = document.createElement("h3"); secM.append(h3M, openM);
   const more = document.querySelector("#home .more"); more.insertBefore(secM, [...more.children].find((x) => x.querySelector("[data-i18n=introM]")) || null);
   const label = () => { for (const b of [openH, openM]) b.textContent = t("trOpen") + " ›"; h3M.textContent = t("trSecT"); };

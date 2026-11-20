@@ -709,7 +709,7 @@ function renderViewsDesktop() {
   slots.forEach((v, i) => {
     if (!v) { add(t("saveSlot", i + 1), "seg empty", () => { slots[i] = currentView(); saveSlots(); renderViews(); }, t("saveSlotAria", i + 1)); return; }
     const wrap = document.createElement("span"); wrap.className = "slot";
-    const b = document.createElement("button"); b.type = "button"; b.className = "seg"; b.textContent = t("slot", i + 1) + (v.near ? ` · ${t("nearB", v.near)}` : ""); b.onclick = () => { goTo(v); renderViews(); };
+    const b = document.createElement("button"); b.type = "button"; b.className = "seg"; b.textContent = t("slot", i + 1);   // pollux：保存的视角只写「视角 1 / 视角 2」，不加「X 附近」描述 b.onclick = () => { goTo(v); renderViews(); };
     const x = document.createElement("button"); x.type = "button"; x.className = "slot-x"; x.textContent = "×"; x.setAttribute("aria-label", t("delSlot", i + 1));
     x.onclick = () => { slots[i] = null; saveSlots(); renderViews(); };
     wrap.append(b, x); viewsBar.appendChild(wrap);
@@ -746,7 +746,7 @@ function viewRows(el) {
   let h = row(t("isoRow"), t("isoSub"), `<button type="button" class="mghost${isoLocked ? " on" : ""}" data-iso>${t(isoLocked ? "isoLocked" : "go")}</button>`)
     + row(t("homeRow"), t("homeSub"), `<button type="button" class="mghost" data-home>${t("go")}</button>`);
   slots.forEach((v, i) => {
-    h += v ? row(t("slot", i + 1), (v.near ? t("nearB", v.near) : "") + (curSlot === i ? " ●" : ""), `<button type="button" class="mghost${curSlot === i ? " on" : ""}" data-go="${i}">${t("go")}</button><button type="button" class="mghost" data-ow="${i}">${t("overwrite")}</button><button type="button" class="mghost" data-del="${i}" aria-label="${t("delSlot", i + 1)}">${t("del")}</button>`)
+    h += v ? row(t("slot", i + 1), curSlot === i ? "●" : "", `<button type="button" class="mghost${curSlot === i ? " on" : ""}" data-go="${i}">${t("go")}</button><button type="button" class="mghost" data-ow="${i}">${t("overwrite")}</button><button type="button" class="mghost" data-del="${i}" aria-label="${t("delSlot", i + 1)}">${t("del")}</button>`)
            : row(t("slot", i + 1), t("emptySlot"), `<button type="button" class="mghost add" data-save="${i}" aria-label="${t("saveSlotAria", i + 1)}">${t("saveHere")}</button>`);
   });
   el.innerHTML = h;

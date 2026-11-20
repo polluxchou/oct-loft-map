@@ -515,6 +515,7 @@ const busStopMarker = (() => {
 // 用法：import { busStopMarker } from "./busstop.js";
 //   const g = busStopMarker(THREE, s, D.roads, { variant: "A" | "B" | "C", buildings: D.buildings });  // s = data.json 里的公交站；buildings 传了就做压楼避让
 //   g 已放好位置、朝向最近的道路（长凳一侧朝路）；g.userData.anchor = 用来挂标签 / 拾取的子物体，g.userData.top = 标签高度
+//   g.userData.setZoom(r)：按地图缩放档位 r（1 / 2 / 3，可带小数）调整大小，返回新的标签高度
 // 坐标约定同 main.js：x 向东、z 向南、y 向上，单位 m。
 
 const COL = {
@@ -615,7 +616,6 @@ function busStopMarker(THREE, s, roads, { variant = "B", buildings = null } = {}
   let overlap = false;
   const v = VARIANT[variant] || VARIANT.B;
   const inner = buildBusShelter(THREE, { sign: v.sign });
-  inner.scale.setScalar(v.k);
   const g = new THREE.Group(); g.add(inner);
   // 朝向：X 沿最近道路，+Z 背离道路（长凳朝路）；候亭前沿退到路边线外 1 m
   const r = nearestRoad(roads, s.p);
@@ -644,10 +644,20 @@ function busStopMarker(THREE, s, roads, { variant = "B", buildings = null } = {}
   g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, new THREE.Vector3(0, 1, 0), z));
   g.position.copy(pos);
   // 拾取 / 标签锚点：一个看不见的包围盒，比候亭稍大，手指好点
-  const hit = new THREE.Mesh(new THREE.BoxGeometry(L_HIT * v.k, 3.2 * v.k, 3 * v.k), new THREE.MeshBasicMaterial({ visible: false }));
-  hit.position.set(0, 1.6 * v.k, 0.8 * v.k); g.add(hit);
-  g.userData = { anchor: hit, top: inner.userData.top * v.k, variant, overlap };
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(L_HIT, 3.2, 3), new THREE.MeshBasicMaterial({ visible: false }));
+  g.add(hit);
+  const top0 = inner.userData.top;
+  // 跟缩放档位变大小（pollux 2026-11-20）：1x 放大 v.k 倍示意和楼的关系；2x、3x 渐回真实比例。返回新的标签高度
+  const setScale = (k) => { inner.scale.setScalar(k); hit.scale.setScalar(k); hit.position.set(0, 1.6 * k, 0.8 * k); g.userData.k = k; g.userData.top = top0 * k; return g.userData.top; };
+  g.userData = { anchor: hit, variant, overlap, setScale, setZoom: (r) => setScale(shelterScaleAt(r, v.k)) };
+  setScale(v.k);
   return g;
+}
+
+// 缩放档位 → 候亭放大倍数：1x 用 kMax（B / C 是 2.5），2x ≈ 1.6，3x 及以上 = 1（真实比例）；档位之间线性过渡，切档动画时连续变化
+function shelterScaleAt(r, kMax = 2.5) {
+  const t = r <= 1 ? 0 : r <= 2 ? 0.6 * (r - 1) : r <= 3 ? 0.6 + 0.4 * (r - 2) : 1;
+  return kMax + (1 - kMax) * t;
 }
 const L_HIT = 12;
 
@@ -1011,13 +1021,17 @@ for (const e of D.exits) {
   labels.push({ el: mk("exit", e.ref, g.children[1]), pos: new THREE.Vector3(e.p[0], 19, e.p[1]), layer: "metro" });
 }
 // 公交站：候亭模型（busstop.js，pollux 2026-11-20 选「B, 2.5× scale」，不带站牌），长凳朝最近的公交道路，压楼时沿路滑开
+// 大小跟缩放档位走（pollux 2026-11-20）：1x 放大 2.5 倍示意，2x 约 1.6 倍，3x 回真实比例，见 busstop.js 的 shelterScaleAt
+const busScalers = []; let busZoomR = -1;
 for (const s of D.bus) {
   const g = typeof busStopMarker === "function" ? busStopMarker(THREE, s, D.roads, { variant: "B", buildings: D.buildings }) : null;
   if (!g) continue;
   const hit = g.userData.anchor; hit.userData = { kind: "bus", s }; pickables.push(hit);
   layer("bus").add(g);
   g.traverse((o) => { if (o.isMesh && o !== hit) { o.castShadow = true; o.receiveShadow = true; } });
-  labels.push({ el: mk("bus", { zh: s.name.replace(/\s*\(.*\)$/, ""), en: s.nameEn.replace(/\s*\(.*\)$/, "") }, hit), pos: new THREE.Vector3(g.position.x, g.userData.top + 2, g.position.z), layer: "bus", minZoom: 0.9 });
+  const L = { el: mk("bus", { zh: s.name.replace(/\s*\(.*\)$/, ""), en: s.nameEn.replace(/\s*\(.*\)$/, "") }, hit), pos: new THREE.Vector3(g.position.x, g.userData.top + 2, g.position.z), layer: "bus", minZoom: 0.9 };
+  labels.push(L);
+  if (g.userData.setZoom) busScalers.push((r) => { L.pos.y = g.userData.setZoom(r) + 2; });
 }
 
 function mk(cls, text, obj) {
@@ -1143,8 +1157,9 @@ function refsHtml(b) {
 
 // 标签投影 + 避让
 const tmp = new THREE.Vector3();
-// 编号错开的候选偏移（单位：半个标签宽 / 一个标签高），按离原位的距离排序
-const NUDGE = (() => { const o = []; for (let i = -6; i <= 6; i++) for (let j = -3; j <= 3; j++) if (i || j) o.push([i * 0.5, j]); return o.sort((p, q) => Math.hypot(p[0], p[1] * 0.8) - Math.hypot(q[0], q[1] * 0.8)); })();
+// 编号错开的候选偏移（单位：一个标签高）：只上下错开（pollux 2026-11-20「改成只豎直」，引线全部竖直），由近到远、同距先上后下，最远 10 格
+// 第一项是左右滑动比例（标签框始终罩住楼的 x，引线仍竖直）：先正对，再左右各滑八成半宽
+const NUDGE = (() => { const o = []; for (let j = 1; j <= 10; j++) for (const f of [0, -0.8, 0.8]) o.push([f, -j], [f, j]); return o; })();
 let farMode = false;
 // 引线（pollux 2026-11-20「加引線」）：编号被错开、离自己的楼较远时，从屋顶中心拉一条直线到标签边缘，楼端加一个小圆点
 const leaderSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -1166,26 +1181,31 @@ function placeLabels() {
     L.el.style.display = "block"; L.el.style.left = x + "px"; L.el.style.top = y + "px";
     const w = L.el.offsetWidth, hgt = L.el.offsetHeight;
     const hits = (b) => boxes.some((q) => !(b[2] < q[0] || b[0] > q[2] || b[3] < q[1] || b[1] > q[3]));
+    // 标签框被已画的引线穿过（引线是竖线 [x, y0, x, y1]）
+    const cut = (b) => leads.some(([lx, a, , c]) => lx > b[0] && lx < b[2] && Math.max(a, c) > b[1] && Math.min(a, c) < b[3]);
+    // 竖直引线 x 从 y0 到 y1 穿过已放好的标签
+    const pierce = (y0, y1) => boxes.some((q) => x > q[0] && x < q[2] && Math.max(y0, y1) > q[1] && Math.min(y0, y1) < q[3]);
     let bx = [x - w / 2 - 2, y - hgt / 2 - 2, x + w / 2 + 2, y + hgt / 2 + 2];
     if (L.layer === "fixed") {
-      // 编号标签不隐藏；撞到已放好的编号（如 C2 主会场 与 C1、A3 与 A3+）就上下错开，找第一个不重叠的位置
-      if (!hits(bx)) L.nudge = null;
+      // 编号标签不隐藏；撞到已放好的编号（如 C2 主会场 与 C1、A3 与 A3+）或压在别人的引线上，就上下错开
+      if (!hits(bx) && !cut(bx)) L.nudge = null;
       else {
-        const sy = hgt + 2, sx = w / 2 + 2;
-        // 由近到远螺旋找空位（半格步长，最远 3 格），都没有就退回原位
-        let done = false;
+        const sy = hgt + 2;
+        // 由近到远上下找空位：先找「不压字、不压引线、自己的引线也不穿过别的标签」的；没有就退一步只要不压字；都没有就留在原位
         // 先试上一帧用过的偏移（镜头移动时标签不在几个空位之间来回跳）
-        for (const [dx, dy] of (L.nudge ? [L.nudge, ...NUDGE] : NUDGE)) {
-          const c = [bx[0] + dx * sx, bx[1] + dy * sy, bx[2] + dx * sx, bx[3] + dy * sy];
-          if (!hits(c)) { bx = c; L.el.style.left = (x + dx * sx) + "px"; L.el.style.top = (y + dy * sy) + "px"; L.nudge = [dx, dy]; done = true; break; }
-        }
-        if (done) {
-          // 引线终点：标签框边缘上离楼最近的点；离楼不到 10 px 就不画
-          const ex = Math.max(bx[0] + 2, Math.min(x, bx[2] - 2)), ey = Math.max(bx[1] + 2, Math.min(y, bx[3] - 2));
-          if (Math.hypot(ex - x, ey - y) > 10) leads.push([x, y, ex, ey]);
+        const cands = L.nudge ? [L.nudge, ...NUDGE] : NUDGE;
+        const sx = Math.max(0, w / 2 - 3);
+        const box = ([f, dy]) => [bx[0] + f * sx, bx[1] + dy * sy, bx[2] + f * sx, bx[3] + dy * sy];
+        const end = (dy, c) => dy < 0 ? c[3] - 2 : c[1] + 2;   // 竖直引线：楼 → 标签下沿（标签在上）或上沿（标签在下）
+        const pick = cands.find((o) => { const c = box(o); return !hits(c) && !cut(c) && !pierce(y, end(o[1], c)); })
+          || cands.find((o) => !hits(box(o)));
+        if (pick) {
+          const [f, dy] = pick; bx = box(pick); L.el.style.left = (x + f * sx) + "px"; L.el.style.top = (y + dy * sy) + "px"; L.nudge = pick;
+          const ey = end(dy, bx);
+          if (Math.abs(ey - y) > 10) leads.push([x, y, x, ey]);   // 离楼不到 10 px 就不画
         }
       }
-    } else if (hits(bx)) { L.el.style.display = "none"; continue; }
+    } else if (hits(bx) || cut(bx)) { L.el.style.display = "none"; continue; }
     boxes.push(bx);
   }
   leaderSvg.innerHTML = leads.map(([x1, y1, x2, y2]) => `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/><circle cx="${x1.toFixed(1)}" cy="${y1.toFixed(1)}" r="2.2"/>`).join("");
@@ -1813,7 +1833,8 @@ labelsEl.addEventListener("contextmenu", (e) => e.preventDefault());   // 右键
 
 // 启动：URL 里带视角就用它，否则按当前屏幕看全园区（候选页的 OCT_FOCUS 优先）
 if (!window.OCT_FOCUS) { const hs = readHash(); goTo(hs || VIEW_DEFAULT, 0); renderViews(); }
-renderer.setAnimationLoop((now) => { if (tween) tween(now); controls.update(); cameraGuard(); renderer.render(scene, camera); placeLabels(); updateCompass(); updateZoomUI(); });
+function rescaleBus() { const r = zoomRatio(); if (Math.abs(r - busZoomR) < 0.01) return; busZoomR = r; for (const f of busScalers) f(r); }
+renderer.setAnimationLoop((now) => { if (tween) tween(now); controls.update(); cameraGuard(); rescaleBus(); renderer.render(scene, camera); placeLabels(); updateCompass(); updateZoomUI(); });
 // 详情卡开关 → body.card（手机面板据此切换首页 / 详情）
 new MutationObserver(() => { const on = panel.style.display === "block"; if (on !== document.body.classList.contains("card")) { document.body.classList.toggle("card", on); onCard(on); } }).observe(panel, { attributes: true, attributeFilter: ["style"] });
 // 右下角数据来源署名：≥ 900 宽时如果会碰到底部居中的工具条，就收进工具条右边和缩放 / 指北针那一列之间、折成多行（pollux 2026-11-20）

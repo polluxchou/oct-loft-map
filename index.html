@@ -3019,8 +3019,10 @@ window.__ready = true;
       const e = on ? 1 - Math.pow(1 - p.k, 3) : p.k * p.k;
       p.shell.scale.y = Math.max(0.001, e);
       if (p.word) p.word.material.opacity = Math.min(1, Math.max(0, (p.k - 0.7) / 0.3));
-      // 点选这栋楼时涂装让开（露出 lime 选中高亮），取消选中后回来
-      const show = p.k > 0.002 && sel !== p.m; p.shell.visible = show; if (p.word) p.word.visible = show;
+      // 涂装一直保留（pollux 2026-11-21：点选快闪店楼本身也不丢涂装）；选中时整栋提亮一点表示选中，楼号标签同时显示选中样式
+      const show = p.k > 0.002; p.shell.visible = show; if (p.word) p.word.visible = show;
+      const lit = sel === p.m ? 0x3a3a3a : 0x000000;
+      for (const mt of p.shell.material) if (mt.emissive.getHex() !== lit) mt.emissive.setHex(lit);
     });
     requestAnimationFrame(popTick);
   }
@@ -3555,7 +3557,8 @@ function startRide(mode) {
     try { actx ||= new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); if (!eng) eng = makeEngine(actx, actx.destination); if (ST.muted) eng.master.disconnect(); } catch { eng = null; }
     ST.rpm = 900; crankT = performance.now();   // 点火：从 900 转拉一下再落回怠速
   }
-  goalMk.visible = mode === "mission"; if (goalMk.visible) goalMk.position.set(NP[MS.goalPt][0], 0, NP[MS.goalPt][1]);
+  const gEnd = r ? r.path.at(-1) : MS.goalPt;   // 终点圈放在最短路到达的那个入口
+  goalMk.visible = mode === "mission"; if (goalMk.visible) goalMk.position.set(NP[gEnd][0], 0, NP[gEnd][1]);
   trailAt = 0; renderStatic(); renderCard();
   showStreet(tx(MS.from.name), mode === "mission" ? MS.title() : t("moFree"));
 }
@@ -3599,6 +3602,7 @@ function step(dt) {
     if (ex.v === ST.a) { ST.v = 0; move = 0; ST.s = L; break; }   // 死路：停在路端，等长按 ↓ 掉头
     if (atJ) { ST.intent = 0; const nm = nameOf(ST.b, ex.v); if (nm && nm !== ST.lastRoad) { ST.lastRoad = nm; showStreet(nm); } }
     ST.a = ST.b; ST.b = ex.v; ST.s = 0; trailAt = 0;
+    if (ST.mode === "mission" && !ST.done && MS.goals.has(ST.a)) { finish(); break; }   // 到达：经过终点楼外墙 25 m 内的任一路网节点（同步行导航的终点判定）
   }
   const L = segLen(ST.a, ST.b) || 1, f = Math.min(1, ST.s / L);
   ST.x = NP[ST.a][0] + (NP[ST.b][0] - NP[ST.a][0]) * f; ST.z = NP[ST.a][1] + (NP[ST.b][1] - NP[ST.a][1]) * f;
@@ -3608,7 +3612,6 @@ function step(dt) {
   bike.position.set(ST.x, 0, ST.z); bike.rotation.y = -ST.h; bike.userData.body.rotation.x = ST.lean;
   for (const b of LOFTS) if (!ST.passed.has(b.name) && ringDist([ST.x, ST.z], b.ring) < 14) { ST.passed.add(b.name); if (ST.mode === "free") ST.score += 10; showTip(t("moPass", b.name), 1400); break; }
   if (kindOf(ST.a, ST.b) === 2 && performance.now() > tipT) showTip(t("moStairs"));
-  if (ST.mode === "mission" && !ST.done && Math.hypot(ST.x - NP[MS.goalPt][0], ST.z - NP[MS.goalPt][1]) < 9) finish();
   // 引擎：转速跟车速走（像踏板车的无级变速），油门再往上推一点
   const crank = (performance.now() - crankT) / 1000;
   const target = crank < 0.35 ? 400 + crank * 7000 : 1500 + (ST.v / VMAX[0]) * 5200 + (gas ? 1400 : 0);
@@ -3656,8 +3659,10 @@ cameraGuard = function () {
 };
 
 // 测试 / 以后的游戏层用：外部可以开始、结束、模拟按键
-window.octMoto = { start: (mode = "mission") => { MS = M1; startRide(mode); }, stop: stopRide, press, state: ST, mission: () => MS, finish,
+window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMission({ p: from, name: { zh: "", en: "" } }, C2_PLACE, () => t("moM1"), () => t("moM1d")) : M1; startRide(mode); },   // from：测试用的起点 [x, z] stop: stopRide, press, state: ST, mission: () => MS, finish,
+  stop: stopRide, press, state: ST, mission: () => MS, finish,
   audio: () => ({ ctx: actx ? actx.state : null, engine: !!eng }),
+  loftAt: (n) => { const b = LOFTS.find((x) => x.name === n); return b ? b.ring.reduce((s, q) => [s[0] + q[0] / b.ring.length, s[1] + q[1] / b.ring.length], [0, 0]) : null; },
   // 测试用：前方路口要按哪个方向才会沿最短路走（0 直行 / -1 左 / 1 右；null = 前面没有路口或怎么按都不对）
   wantIntent() { const j = nextJunction(ST.a, ST.b, ST.s, 200); if (!j) return null; const r = dijkstra(j.b, MS.goals); if (!r || r.path.length < 2) return null; const v = r.path[1]; for (const it of [0, -1, 1]) if (pickExit(j.a, j.b, it).v === v) return it; return null; } };
 }

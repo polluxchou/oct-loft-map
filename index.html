@@ -3304,7 +3304,7 @@ window.__ready = true;
 const SC = 3;                               // 车模放大倍数：真车约 1.8 m，地图上放大 3 倍才看得清
 const VMAX = { 0: 12.5, 1: 6, 2: 1.4 };     // m/s：道路 45 km/h（示意）、园区小路 22 km/h、台阶推行 5 km/h
 Object.assign(I18N.zh, {
-  moEnter: "骑车认路", moGame: "OCT风云", moExit: "下车", moMute: "静音", moUnmute: "声音",
+  moEnter: "骑车认路", moGame: "OCT风云", moExit: "退出骑车", moMute: "静音", moUnmute: "声音",
   moFree: "自由骑行", moMission: "任务", moM1: "首单外送", moM1d: "从侨城北 B 口出发，把开幕咖啡送到 C2 主会场",
   moLeft: (m) => `还有 ${m} m`, moTime: "用时", moDone: "送达！", moScore: "风云值", moWalk: (m, min) => `同一条路走路约 ${min} 分钟（${m} m）`,
   moAgain: "再骑一次", moToFree: "随便逛逛", moNext: (d) => `下个路口：${d}`, moL: "左转", moR: "右转", moS: "直行", moInto: (n) => `进 ${n}`,
@@ -3312,7 +3312,7 @@ Object.assign(I18N.zh, {
   moKeys: "↑ 油门　↓ 刹车　← → 选下个路口", moProto: "原型 · 速度和风云值都是示意", moGas: "油门", moBrake: "刹车", moLeftK: "左", moRightK: "右",
 });
 Object.assign(I18N.en, {
-  moEnter: "Ride the map", moGame: "OCT Rush", moExit: "Get off", moMute: "Mute", moUnmute: "Sound",
+  moEnter: "Ride the map", moGame: "OCT Rush", moExit: "Exit ride", moMute: "Mute", moUnmute: "Sound",
   moFree: "Free ride", moMission: "Mission", moM1: "First delivery", moM1d: "Ride from Qiaocheng North Exit B and deliver the opening coffee to C2",
   moLeft: (m) => `${m} m to go`, moTime: "Time", moDone: "Delivered!", moScore: "Rush points", moWalk: (m, min) => `On foot the same way: about ${min} min (${m} m)`,
   moAgain: "Ride again", moToFree: "Just ride", moNext: (d) => `Next junction: ${d}`, moL: "left", moR: "right", moS: "straight", moInto: (n) => `onto ${n}`,
@@ -3447,6 +3447,7 @@ body.riding #labels > *:not(#leaders):not(.loft):not(.c2):not(.c2flag):not(.road
 .mo { position:fixed; z-index:20; font:inherit; color:var(--ink); }
 .mo-btn { font:inherit; font-size:14px; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px; min-height:44px; padding:0 14px; cursor:pointer; }
 .mo-btn.pri { background:var(--accent); border-color:#829700; font-weight:650; }
+.mo-exit { display:inline-flex; align-items:center; gap:6px; }
 .mo-btn:focus-visible, .mo-pad button:focus-visible, .mo-wide:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
 .mo-card { top:16px; left:16px; width:min(380px, calc(100vw - 32px - 132px)); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
 .mo-card .k { font-size:13px; color:var(--muted); display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
@@ -3493,7 +3494,7 @@ tip.setAttribute("role", "status"); street.setAttribute("aria-live", "polite"); 
 const UI = [card, tr, tip, street, spd, keys, padL, padR];
 const ARR = (r) => `<svg viewBox="0 0 24 24" width="26" height="26" style="transform:rotate(${r}deg)" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`;
 function renderStatic() {
-  tr.innerHTML = `<button type="button" class="mo-btn pri" data-a="exit">${t("moExit")}</button><button type="button" class="mo-btn" data-a="mute" aria-pressed="${ST.muted}">${ST.muted ? t("moUnmute") : t("moMute")}</button>`;
+  tr.innerHTML = `<button type="button" class="mo-btn pri mo-exit" data-a="exit"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>${t("moExit")}</button><button type="button" class="mo-btn" data-a="mute" aria-pressed="${ST.muted}">${ST.muted ? t("moUnmute") : t("moMute")}</button>`;
   keys.innerHTML = `${t("moKeys")}<small>${t("moUturn")}</small><small>${t("moProto")}</small>`;
   padL.innerHTML = `<button type="button" data-k="ArrowLeft" aria-label="${t("moLeftK")}">${ARR(0)}</button><button type="button" data-k="ArrowRight" aria-label="${t("moRightK")}">${ARR(180)}</button>`;
   padR.innerHTML = `<button type="button" data-k="ArrowDown">${t("moBrake")}</button><button type="button" data-k="ArrowUp">${t("moGas")}</button>`;
@@ -3540,7 +3541,17 @@ select = function () { if (ST.on) return; return _select.apply(this, arguments);
 document.getElementById("langBtn")?.addEventListener("click", () => requestAnimationFrame(() => { document.querySelectorAll("button[data-mo] span").forEach((s) => (s.textContent = t("moEnter"))); if (ST.on) { renderStatic(); renderCard(); } }));
 
 // ---------- 开始 / 结束 ----------
-let actx = null, eng = null, saved = null, crankT = 0, camInit = true, trailAt = 0, cardAt = 0, last = performance.now();
+let actx = null, eng = null, saved = null, crankT = 0, camInit = true, trailAt = 0, cardAt = 0, last = performance.now(), cardHtml = "";
+// 骑车视角（pollux 2026-11-21「视角高度按照 1x 的走」）：相机保持进入时的地图朝向，距离 = 1x 档位，只跟着车平移；不再低机位追尾转来转去
+const RIDE = { off: new THREE.Vector3(), mpp: 1 };   // off：相机相对车的偏移；mpp：1x 时每像素多少米，用来把车、导航线、箭头按屏幕像素定大小
+function rideView() {
+  const dir = camera.position.clone().sub(controls.target).normalize(), d = fitDist();
+  RIDE.off.copy(dir).multiplyScalar(d); RIDE.mpp = 2 * d * Math.tan((saved?.fov ?? camera.fov) * Math.PI / 360) / innerHeight;
+  bike.scale.setScalar(Math.max(SC, 30 * RIDE.mpp / 1.9));   // 车在屏幕上约 30 px 长
+  arrowMk.scale.setScalar(Math.max(1, 28 * RIDE.mpp / 10)); goalMk.scale.setScalar(Math.max(1, 22 * RIDE.mpp / 7));
+  camera.near = Math.max(2, d * 0.08); camera.far = d * 2 + 4000; camera.updateProjectionMatrix();
+}
+const clearTrail = () => { trail.children.forEach((m) => m.geometry.dispose()); trail.clear(); };   // 导航线每 0.4 s 重建一次，旧几何体要释放，不然越骑越卡
 function startRide(mode) {
   ST.mode = mode; ST.v = 0; ST.intent = 0; ST.done = false; ST.passed = new Set(); ST.lastRoad = null; ST.t0 = performance.now(); ST.holdDown = 0; ST.nextTxt = "";
   if (mode === "mission") ST.score = ST.score || 0;
@@ -3552,7 +3563,7 @@ function startRide(mode) {
     saved = { pos: camera.position.clone(), tgt: controls.target.clone(), damp: controls.enableDamping, fov: camera.fov, near: camera.near, far: camera.far };
     ST.on = true; document.body.classList.add("riding"); controls.enabled = false; controls.enableDamping = false;
     routeGroup.visible = false; legGroup.visible = false;   // 已有步行导航路线先藏起来，下车再显示（不清掉）
-    UI.forEach((u) => (u.hidden = false)); bike.visible = true; camInit = true; last = performance.now();
+    UI.forEach((u) => (u.hidden = false)); bike.visible = true; camInit = true; last = performance.now(); rideView();
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();   // 空格（刹车）不再触发入口按钮
     try { actx ||= new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); if (!eng) eng = makeEngine(actx, actx.destination); if (ST.muted) eng.master.disconnect(); } catch { eng = null; }
     ST.rpm = 900; crankT = performance.now();   // 点火：从 900 转拉一下再落回怠速
@@ -3564,7 +3575,7 @@ function startRide(mode) {
 }
 function stopRide() {
   if (!ST.on) return;
-  ST.on = false; document.body.classList.remove("riding"); UI.forEach((u) => (u.hidden = true)); end.hidden = true; bike.visible = false; goalMk.visible = false; arrowMk.visible = false; trail.clear();
+  ST.on = false; document.body.classList.remove("riding"); UI.forEach((u) => (u.hidden = true)); end.hidden = true; bike.visible = false; goalMk.visible = false; arrowMk.visible = false; clearTrail();
   routeGroup.visible = true; legGroup.visible = true;
   controls.enabled = true;
   if (saved) { controls.enableDamping = saved.damp; camera.position.copy(saved.pos); controls.target.copy(saved.tgt); camera.fov = saved.fov; camera.near = saved.near; camera.far = saved.far; camera.updateProjectionMatrix(); }
@@ -3574,11 +3585,14 @@ function stopRide() {
 const fmtT = (ms) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 function renderCard() {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  if (ST.mode === "mission") card.innerHTML = `<div class="k"><b>${t("moGame")}</b><span>${t("moMission")} · ${esc(MS.title())}</span></div><div class="d">${esc(MS.desc())}</div><div class="row"><span>${t("moTime")} <b>${fmtT((ST.done ? ST.doneAt : performance.now()) - ST.t0)}</b></span><span><b>${t("moLeft", Math.round(ST.done ? 0 : ST.remain))}</b></span></div>${ST.nextTxt && !ST.done ? `<div class="nx">${esc(ST.nextTxt)}</div>` : ""}`;
-  else card.innerHTML = `<div class="k"><b>${t("moGame")}</b><span>${t("moFree")}</span></div><div class="h">${esc(ST.lastRoad || "")}</div><div class="row"><span>${t("moScore")} <b>${ST.score}</b></span></div>`;
+  let html;
+  if (ST.mode === "mission") html = `<div class="k"><b>${t("moGame")}</b><span>${t("moMission")} · ${esc(MS.title())}</span></div><div class="d">${esc(MS.desc())}</div><div class="row"><span>${t("moTime")} <b>${fmtT((ST.done ? ST.doneAt : performance.now()) - ST.t0)}</b></span><span><b>${t("moLeft", Math.round(ST.done ? 0 : ST.remain))}</b></span></div>${ST.nextTxt && !ST.done ? `<div class="nx">${esc(ST.nextTxt)}</div>` : ""}`;
+  else html = `<div class="k"><b>${t("moGame")}</b><span>${t("moFree")}</span></div><div class="h">${esc(ST.lastRoad || "")}</div><div class="row"><span>${t("moScore")} <b>${ST.score}</b></span></div>`;
+  if (html !== cardHtml) { cardHtml = html; card.innerHTML = html; }   // 文字没变就不重写，省掉重排
 }
 function finish() {
-  ST.done = true; ST.doneAt = performance.now(); ST.v = 0; const ms = ST.doneAt - ST.t0, walkM = Math.round(ST.routeLen), walkMin = Math.max(1, Math.round(walkM / 75));
+  ST.done = true; ST.doneAt = performance.now(); ST.v = 0; goalMk.visible = false; clearTrail(); arrowMk.visible = false;   // 送达：收掉终点圈和导航线，别挡住送达卡后面的画面
+  const ms = ST.doneAt - ST.t0, walkM = Math.round(ST.routeLen), walkMin = Math.max(1, Math.round(walkM / 75));
   const pts = Math.max(50, Math.round(300 - ms / 1000 * 2)); ST.score += pts;
   end.innerHTML = `<div class="t">${t("moDone")}</div><div class="sc">${t("moTime")} ${fmtT(ms)} · ${t("moScore")} <b>+${pts}</b></div><div class="w">${t("moWalk", walkM, walkMin)}</div><div class="bt"><button type="button" class="mo-btn" data-a="free">${t("moToFree")}</button><button type="button" class="mo-btn pri" data-a="again">${t("moAgain")}</button></div>`;
   end.hidden = false; renderCard(); end.querySelector("[data-a=again]").focus({ preventScroll: true });
@@ -3620,30 +3634,28 @@ function step(dt) {
   lampMat.emissiveIntensity = document.body.classList.contains("night") ? 2.2 : 0.6;
 }
 function updateTrail(now) {
-  if (now - trailAt < 400) return; trailAt = now; trail.clear(); arrowMk.visible = false;
+  if (now - trailAt < 400) return; trailAt = now; clearTrail(); arrowMk.visible = false;
   if (ST.mode !== "mission" || ST.done) { ST.remain = 0; ST.nextTxt = ""; return; }
   const r = dijkstra(ST.b, MS.goals);
   ST.remain = r ? r.len + Math.hypot(NP[ST.b][0] - ST.x, NP[ST.b][1] - ST.z) : 0;
   if (r && r.path.length) {   // 前方约 160 m 的导航线（像游戏里的 GPS 线），不画整条，留给玩家自己记路
     const pts = [[ST.x, ST.z], ...r.path.map((i) => NP[i])];
-    let acc = 0, cut = pts.length; for (let i = 1; i < pts.length; i++) { acc += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); if (acc > 160) { cut = i + 1; break; } }
+    let acc = 0, cut = pts.length; for (let i = 1; i < pts.length; i++) { acc += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); if (acc > 200) { cut = i + 1; break; } }
     const p2 = pts.slice(0, cut);
-    if (p2.length > 1) { const m1 = new THREE.Mesh(ribbon(p2, 5.2, 0.9), trailEdge), m2 = new THREE.Mesh(ribbon(p2, 3.6, 1.0), trailMat); m1.renderOrder = 5; m2.renderOrder = 6; trail.add(m1, m2); }
+    if (p2.length > 1) { const w = Math.max(3.6, 7 * RIDE.mpp), m1 = new THREE.Mesh(ribbon(p2, w * 1.5, 0.9), trailEdge), m2 = new THREE.Mesh(ribbon(p2, w, 1.0), trailMat); m1.renderOrder = 5; m2.renderOrder = 6; trail.add(m1, m2); }
   }
   const j = nextJunction(ST.a, ST.b, ST.s);   // 前方路口：地上箭头 + 任务卡预告
-  if (j) { const ex = pickExit(j.a, j.b, ST.intent), h = hd(j.b, ex.v); arrowMk.position.set(NP[j.b][0] + Math.cos(h) * 12, 1.2, NP[j.b][1] + Math.sin(h) * 12); arrowMk.rotation.y = -h; arrowMk.visible = true;
+  if (j) { const ex = pickExit(j.a, j.b, ST.intent), h = hd(j.b, ex.v); { const o = 12 * arrowMk.scale.x; arrowMk.position.set(NP[j.b][0] + Math.cos(h) * o, 1.2, NP[j.b][1] + Math.sin(h) * o); } arrowMk.rotation.y = -h; arrowMk.visible = true;
     const tn = ex.turn > 0.35 ? t("moR") : ex.turn < -0.35 ? t("moL") : t("moS"), nm = nameOf(j.b, ex.v); ST.nextTxt = t("moNext", tn + (nm ? " · " + t("moInto", nm) : "")); }
   else ST.nextTxt = "";
 }
 const camP = new THREE.Vector3(), camT = new THREE.Vector3(), wantP = new THREE.Vector3(), wantT = new THREE.Vector3();
-function updateCam(dt) {   // 低机位追尾、略偏右，看得到车侧面
-  const back = MOBILE ? 34 : 38, up = MOBILE ? 22 : 20, ahead = 22, side = 6, fx = Math.cos(ST.h), fz = Math.sin(ST.h);
-  wantP.set(ST.x - fx * back - fz * side, up, ST.z - fz * back + fx * side); wantT.set(ST.x + fx * ahead, MOBILE ? 2 : 0, ST.z + fz * ahead);
+function updateCam(dt) {   // 1x 高度、地图朝向不变，相机只平移跟车；车稍微往行进方向留一点空
+  const lead = innerHeight * 0.1 * RIDE.mpp;
+  wantT.set(ST.x + Math.cos(ST.h) * lead, 0, ST.z + Math.sin(ST.h) * lead); wantP.copy(wantT).add(RIDE.off);
   if (camInit) { camP.copy(wantP); camT.copy(wantT); camInit = false; }
-  const k = Math.min(1, dt * 3.2); camP.lerp(wantP, k); camT.lerp(wantT, k);
+  const k = Math.min(1, dt * 4); camP.lerp(wantP, k); camT.lerp(wantT, k);
   camera.position.copy(camP); controls.target.copy(camT); camera.lookAt(camT);
-  const fov = MOBILE ? 66 : 52, d = camP.distanceTo(camT), near = Math.max(1, d * 0.05);
-  if (camera.fov !== fov || Math.abs(camera.near - near) > near * 0.1) { camera.fov = fov; camera.near = near; camera.far = d * 2 + 4000; camera.updateProjectionMatrix(); }
 }
 const _cameraGuard = cameraGuard;
 cameraGuard = function () {

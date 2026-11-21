@@ -960,7 +960,7 @@ const I18N = {
     east: "东", southeast: "东南", south: "南", southwest: "西南", west: "西", northwest: "西北", north: "北", northeast: "东北",
     timeline: "时间线", refs: "相关报道", noRefs: "暂无公开报道", more: (n) => `更多 ${n} 条`, approx: "约 ", noLink: "条款限制深链，不放链接", b_推断: "推断", b_未证实: "未证实", refsFoot: "只列标题、日期、出处和我们写的一句话摘要，点击跳到原文。",
     geoName: "你在地图上的名字", meFake: "模拟",
-    geoT: "领礼物前，确认一下你在会场", geoB: "礼物只在 OCT-LOFT 现场领取。我们需要用一次你的位置，确认你在 C2 方圆 1 公里内。", geoL: ["确认后地图上会出现你的头像（名字可以在上面改），停留 30 分钟，点头像随时可以删除", "只换算成地图上的位置（精确到 5 米），不保存经纬度", "不在会场也能先看看有哪些礼物"], geoYes: "允许定位", geoNo: "暂不，先逛逛", geoFt: "点「允许定位」后，浏览器还会再问你一次。",
+    geoT: "领礼物前，确认一下你在会场", geoB: "礼物只在 OCT-LOFT 现场领取。我们需要用一次你的位置，确认你在 C2 方圆 1 公里内。", geoL: ["确认后地图上会出现你的头像（名字可以在上面改），停留 30 分钟，点头像随时可以删除", "只换算成地图上的位置（精确到 5 米），不保存经纬度", "要允许定位才能打开礼物口袋；想先看看，可以「假装在现场」试试（不能领取）"], geoYes: "允许定位", geoNo: "暂不，先逛逛", geoFt: "点「允许定位」后，浏览器还会再问你一次。",
     meFar: (km) => `雷达显示你还在会场外头——场内功能先替你留着，走进 C2 方圆 1 公里就自动解锁。现在离 C2 还有约 ${km} km，冲！`, meFarX: "知道了",
     me: "你的位置：点一下可以删除", meOther: "现场的人", meDel: "删除我的位置", help: "使用说明", zoomAria: "缩放档位", zoomTip: (n) => (n === 1 ? "1x：看全园区" : `${n}x：放大到 ${n} 倍`), compass: "指北针：点一下回到正北朝上", compassTip: "指北针：点一下回到正北朝上。键盘：方向键平移，+/- 或 1/2/3 切缩放档位，Q/E 旋转，N 正北，0 看全园区，I 等距，Esc 关闭",
   },
@@ -996,7 +996,7 @@ const I18N = {
     east: "east", southeast: "southeast", south: "south", southwest: "southwest", west: "west", northwest: "northwest", north: "north", northeast: "northeast",
     timeline: "Timeline", refs: "Related coverage", noRefs: "No public coverage found yet", more: (n) => `${n} more`, approx: "c. ", noLink: "no deep link (site terms)", b_推断: "inferred", b_未证实: "unconfirmed", refsFoot: "Titles, dates, sources and our one-line summaries only; links open the original.",
     geoName: "Your name on the map", meFake: "Demo",
-    geoT: "Before the gifts: are you at the venue?", geoB: "Gifts are claimed on site at OCT-LOFT. We'll use your location once to check you're within 1 km of C2.", geoL: ["Your avatar (name editable above) then appears on the map for 30 minutes; tap it to remove it any time", "Only a map position (to 5 m) is used; latitude and longitude aren't stored", "Not there yet? You can still browse the gifts"], geoYes: "Allow location", geoNo: "Not now, just browsing", geoFt: "After you tap Allow, your browser will ask once more.",
+    geoT: "Before the gifts: are you at the venue?", geoB: "Gifts are claimed on site at OCT-LOFT. We'll use your location once to check you're within 1 km of C2.", geoL: ["Your avatar (name editable above) then appears on the map for 30 minutes; tap it to remove it any time", "Only a map position (to 5 m) is used; latitude and longitude aren't stored", "The gift pocket opens only after you allow location; to look around first, try it as if you were on site (no claiming)"], geoYes: "Allow location", geoNo: "Not now, just browsing", geoFt: "After you tap Allow, your browser will ask once more.",
     meFar: (km) => `Our radar says you're not at the venue yet — on-site features are saved for you and unlock once you're within 1 km of C2. About ${km} km to go. Off you go!`, meFarX: "Got it",
     me: "Your location: tap to remove", meOther: "Someone nearby", meDel: "Remove my location", help: "How to use", zoomAria: "Zoom levels", zoomTip: (n) => (n === 1 ? "1x: whole park" : `${n}x: zoom in ${n}×`), compass: "Compass: tap to turn north up", compassTip: "Compass: tap to turn north up. Keys: arrows pan, +/- or 1/2/3 zoom level, Q/E rotate, N north, 0 whole park, I isometric, Esc close",
   },
@@ -2679,6 +2679,7 @@ window.__ready = true;
     spProto: "原型：参与者身份和库存都在本机模拟，还没接 themu 后端。", spReset: "重置示意数据",
     spOnsiteT: "现场确认", spChecking: "正在确认你是否在 OCT-LOFT 现场…", spNear: "你在 OCT-LOFT 现场，可以领取。", spFar: "你现在不在 OCT-LOFT 附近，到现场后再领。", spDenied: "没有拿到定位权限，确认不了你是否在现场。", spErr: "暂时定位不到，稍后再试。", spNone: "定位还没接上，暂时不能领取。",
     spFakeBtn: "我试试在现场会怎么样", spFake: "你只是在假装在现场哦！~", spFakeNote: "测试用：假装的位置只在这台设备上，不上传。",
+    spNeedLocT: "要先允许定位，才能打开礼物口袋", spNeedLoc: "礼物只在 OCT-LOFT 现场领取。想先看看效果，可以假装在现场试试（不能领取）。",
     spModeOnT: "礼物模式已打开", spModeOn: "地图上的品牌涂装只是好玩的展示，赞助商和这些建筑没有实际对应关系；怎么领礼物，以礼物详情里写的为准。", spModeOff: "礼物模式已关闭，建筑恢复原样。", spOk: "知道了",
     spDetailT: "礼物详情", spBackTx: "返回", spCount: (n) => `${n} 项权益`, spMineCount: (n) => `已领 ${n} 项`, spSp: "赞助商", spUse: "怎么使用", spLoc: "位置", spOnlineSub: "线上发放，不用到现场", spOpen: (x) => `${x}，看详情`,
   });
@@ -2693,6 +2694,7 @@ window.__ready = true;
     spProto: "Prototype: attendee check and stock are simulated on this device; not yet connected to the themu backend.", spReset: "Reset demo data",
     spOnsiteT: "On-site check", spChecking: "Checking whether you're at OCT-LOFT…", spNear: "You're at OCT-LOFT, so you can claim this.", spFar: "You're not near OCT-LOFT right now. Claim it when you're there.", spDenied: "No location permission, so we can't tell whether you're on site.", spErr: "Can't get your location right now. Try again later.", spNone: "Location isn't connected yet, so claiming is off for now.",
     spFakeBtn: "Try it as if I'm on site", spFake: "You're only pretending to be on site! ~", spFakeNote: "For testing: the pretend position stays on this device and isn't uploaded.",
+    spNeedLocT: "Allow location to open the gift pocket", spNeedLoc: "Gifts are collected on site at OCT-LOFT. To see how it works, try it as if you were on site (no claiming).",
     spModeOnT: "Gift mode is on", spModeOn: "The brand colours on the map are just for fun. Sponsors have no actual link to these buildings; how to collect each gift is in its gift details.", spModeOff: "Gift mode is off. The buildings are back to normal.", spOk: "Got it",
     spDetailT: "Gift details", spBackTx: "Back", spCount: (n) => `${n} perks`, spMineCount: (n) => `${n} claimed`, spSp: "Sponsor", spUse: "How to use", spLoc: "Location", spOnlineSub: "Sent online; no need to be on site", spOpen: (x) => `${x}, see details`,
   });
@@ -2822,6 +2824,7 @@ window.__ready = true;
   #spNote b { display:block; font-size:15px; font-weight:650; }
   #spNote .tx { flex:1; min-width:0; }
   #spNote .ok { flex:none; min-height:44px; padding:0 12px; border-radius:8px; border:1px solid var(--segline); background:var(--surface); color:var(--ink); font:inherit; font-size:13px; cursor:pointer; }
+  #spNote .bt { flex:none; display:flex; flex-direction:column; gap:6px; }
   #spNote .ok:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   @media (min-width: 900px) { #spNote { bottom:116px; } }
   @media (max-width: 899px) and (min-width: 641px) { #spNote { bottom:112px; } }
@@ -3124,7 +3127,7 @@ window.__ready = true;
     if (typeof setPicking === "function" && picking) setPicking(false);
     if (!detailId || detailId !== focusSp) focusSp = null;   // 回到正在地图上看的那一家时，地图标记保留
     giftMode = true;
-    askPresence();   // 定位授权在打开礼物口袋时就问（pollux 2026-11-21），每次打开页面只问一次
+    askPresence();   // 已过授权（gate）；这里只确保定位在跑，结果显示在礼物详情
     sponsorView();
     confetti.play();   // 第一次打开礼物口袋：拆礼物彩纸
     isOpen = true; tab = tb; cur = SPS.find((x) => x.id === detailId) || null; view = cur ? "detail" : "list"; ov.classList.add("on"); document.body.classList.add("sp-open");
@@ -3201,17 +3204,38 @@ window.__ready = true;
   // 只有真实在现场（near 且不是假装）才能领取；假装在现场时「领取」停用，提示「你只是在假装在现场哦！~」
   let pres = { status: null, fake: false }, presAsked = false;
   const presRefresh = () => { if (isOpen && view === "detail") render(); };
+  // 返回定位结果的 Promise；同一次打开页面只问一次，上次是「拒绝」时允许再问（品牌弹窗里点了「暂不」可以改主意）
+  let presP = null;
   function askPresence() {
-    if (presAsked) return; presAsked = true;
+    if (pres.fake || (presP && pres.status !== "denied")) return presP || Promise.resolve(pres);
     const P = window.octPresence;
-    if (!P?.request) { pres = { status: "none", fake: false }; return; }
-    pres = { status: "checking", fake: false };
-    Promise.resolve().then(() => P.request()).then((r) => { if (!pres.fake) pres = { status: r?.status || "error", fake: !!r?.fake }; presRefresh(); updateEntry(); }, () => { if (!pres.fake) pres = { status: "error", fake: false }; presRefresh(); });
+    if (!P?.request) { pres = { status: "none", fake: false }; return (presP = Promise.resolve(pres)); }
+    if (!pres.fake) pres = { status: "checking", fake: false };
+    presP = Promise.resolve().then(() => P.request()).then((r) => { if (!pres.fake) pres = { status: r?.status || "error", fake: !!r?.fake }; presRefresh(); updateEntry(); return pres; },
+      () => { if (!pres.fake) pres = { status: "error", fake: false }; presRefresh(); return pres; });
+    return presP;
+  }
+  // 打开礼物口袋前先过定位授权（pollux 2026-11-21）：授权前不出现口袋列表、涂装和彩纸
+  // 已授权 / 已有结果 / 假装在现场 → 直接打开；否则先问：浏览器一授权就打开（不等定位结果），拒绝就提示「要先允许定位」并给「我试试在现场」入口
+  function gate(open) {
+    if (pres.fake || ["near", "far", "error", "none"].includes(pres.status)) return open();
+    let done = false; const go = () => { if (!done) { done = true; open(); } };
+    try { navigator.permissions?.query({ name: "geolocation" }).then((st) => { if (st.state === "granted") go(); st.onchange = () => { if (st.state === "granted") go(); }; }).catch(() => {}); } catch {}
+    askPresence().then((r) => { if (done) return; if (r.status === "denied") deniedNote(open); else go(); });
+  }
+  function deniedNote(open) {
+    document.getElementById("spNote")?.remove();
+    const el = document.createElement("div"); el.id = "spNote"; el.setAttribute("role", "status");
+    el.innerHTML = `<span class="tx"><b>${t("spNeedLocT")}</b>${t("spNeedLoc")}</span><span class="bt"><button type="button" class="ok fk">${t("spFakeBtn")}</button><button type="button" class="ok">${t("spOk")}</button></span>`;
+    const shut = () => { el.classList.add("out"); setTimeout(() => el.remove(), 250); };
+    el.querySelector(".fk").onclick = () => { el.remove(); fakePresence().then(open); };   // 假装生效后再打开，不会再触发一次定位请求
+    el.querySelector(".ok:not(.fk)").onclick = shut;
+    document.body.appendChild(el); placeNote();
   }
   function fakePresence() {
     const P = window.octPresence;
-    const done = (r) => { pres = { status: r?.status || "near", fake: true }; presRefresh(); };
-    if (P?.fake) Promise.resolve().then(() => P.fake()).then(done, () => done(null)); else done(null);
+    const done = (r) => { pres = { status: r?.status || "near", fake: true }; presP = Promise.resolve(pres); presRefresh(); };
+    return P?.fake ? Promise.resolve().then(() => P.fake()).then(done, () => done(null)) : Promise.resolve(done(null));
   }
   const canClaim = () => pres.status === "near" && !pres.fake;
   function onsite(s) {
@@ -3276,7 +3300,7 @@ window.__ready = true;
     entry.setAttribute("aria-label", t("spOpenAria", n, m)); entry.setAttribute("aria-expanded", String(isOpen));
   }
   let resume = null;   // 「在地图上看」收起口袋时记下的分页和礼物详情；按 × / Esc 主动关掉就清掉
-  entry.onclick = () => { if (isOpen) { resume = null; focusSp = null; giftMode = false; closePocket(); } else openPocket(resume?.tab || "all", resume?.id || null); };
+  entry.onclick = () => { if (isOpen) { resume = null; focusSp = null; giftMode = false; closePocket(); } else gate(() => { if (!isOpen) openPocket(resume?.tab || "all", resume?.id || null); }); };
   updateEntry(); requestAnimationFrame(fitEntry);
   new MutationObserver(() => requestAnimationFrame(() => { fitEntry(); if (isOpen) fitOv(); })).observe(document.getElementById("views"), { childList: true, subtree: true, characterData: true });
 
@@ -3309,7 +3333,7 @@ Object.assign(I18N.zh, {
   moLeft: (m) => `还有 ${m} m`, moTime: "用时", moDone: "送达！", moScore: "风云值", moWalk: (m, min) => `同一条路走路约 ${min} 分钟（${m} m）`,
   moAgain: "再骑一次", moToFree: "随便逛逛", moNext: (d) => `下个路口：${d}`, moL: "左转", moR: "右转", moS: "直行", moInto: (n) => `进 ${n}`,
   moPass: (b) => `经过 ${b}`, moStairs: "台阶：下车推行", moUturn: "停稳后长按 ↓ 掉头",
-  moKeys: "↑ 油门　↓ 刹车　← → 选下个路口", moProto: "原型 · 速度和风云值都是示意", moGas: "油门", moBrake: "刹车", moLeftK: "左", moRightK: "右",
+  moKeys: "↑ 油门　↓ 刹车　← → 选下个路口", moCompass: "指北针：棕色尖头指向北", moProto: "原型 · 速度和风云值都是示意", moGas: "油门", moBrake: "刹车", moLeftK: "左", moRightK: "右",
 });
 Object.assign(I18N.en, {
   moEnter: "Ride the map", moGame: "OCT Rush", moExit: "Exit ride", moMute: "Mute", moUnmute: "Sound",
@@ -3317,7 +3341,7 @@ Object.assign(I18N.en, {
   moLeft: (m) => `${m} m to go`, moTime: "Time", moDone: "Delivered!", moScore: "Rush points", moWalk: (m, min) => `On foot the same way: about ${min} min (${m} m)`,
   moAgain: "Ride again", moToFree: "Just ride", moNext: (d) => `Next junction: ${d}`, moL: "left", moR: "right", moS: "straight", moInto: (n) => `onto ${n}`,
   moPass: (b) => `Passing ${b}`, moStairs: "Stairs: walk the bike", moUturn: "Stop, then hold ↓ to turn round",
-  moKeys: "↑ throttle  ↓ brake  ← → pick next turn", moProto: "Prototype · speeds and points are illustrative", moGas: "Throttle", moBrake: "Brake", moLeftK: "Left", moRightK: "Right",
+  moKeys: "↑ throttle  ↓ brake  ← → pick next turn", moCompass: "Compass: the brown tip points north", moProto: "Prototype · speeds and points are illustrative", moGas: "Throttle", moBrake: "Brake", moLeftK: "Left", moRightK: "Right",
 });
 
 // ---------- 路网工具（只读 G / adj，不改步行导航）----------
@@ -3448,6 +3472,9 @@ body.riding #labels > *:not(#leaders):not(.loft):not(.c2):not(.c2flag):not(.road
 .mo-btn { font:inherit; font-size:14px; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:8px; min-height:44px; padding:0 14px; cursor:pointer; }
 .mo-btn.pri { background:var(--accent); border-color:#829700; font-weight:650; }
 .mo-exit { display:inline-flex; align-items:center; gap:6px; }
+.mo-tr .mo-cmp { order:3; }
+.mo-cmp { width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; }
+.mo-cmp svg { transition:transform .3s; }
 .mo-btn:focus-visible, .mo-pad button:focus-visible, .mo-wide:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
 .mo-card { top:16px; left:16px; width:min(380px, calc(100vw - 32px - 132px)); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
 .mo-card .k { font-size:13px; color:var(--muted); display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
@@ -3493,9 +3520,13 @@ const padL = el("mo-pad l"), padR = el("mo-pad r");
 tip.setAttribute("role", "status"); street.setAttribute("aria-live", "polite"); end.setAttribute("role", "dialog");
 const UI = [card, tr, tip, street, spd, keys, padL, padR];
 const ARR = (r) => `<svg viewBox="0 0 24 24" width="26" height="26" style="transform:rotate(${r}deg)" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`;
+// 指北针：只在起步定朝向时转一次（骑行中地图朝向不变）。屏幕上方 = bearing，北 = -90°，指针顺时针转 (北 - bearing)
+let cmpDeg = 0;
+function compassTo(bearing) { cmpDeg = ((-Math.PI / 2 - bearing) * 180 / Math.PI + 540) % 360 - 180; const c = tr.querySelector(".mo-cmp svg"); if (c) c.style.transform = `rotate(${cmpDeg}deg)`; }
 function renderStatic() {
-  tr.innerHTML = `<button type="button" class="mo-btn pri mo-exit" data-a="exit"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>${t("moExit")}</button><button type="button" class="mo-btn" data-a="mute" aria-pressed="${ST.muted}">${ST.muted ? t("moUnmute") : t("moMute")}</button>`;
+  tr.innerHTML = `<div class="mo-cmp" role="img" aria-label="${t("moCompass")}"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M12 2.5 15.5 12h-7Z" fill="#6d3425"/><path d="M12 21.5 8.5 12h7Z" fill="none" stroke="#b9b1aa" stroke-width="1.5" stroke-linejoin="round"/></svg></div><button type="button" class="mo-btn pri mo-exit" data-a="exit"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>${t("moExit")}</button><button type="button" class="mo-btn" data-a="mute" aria-pressed="${ST.muted}">${ST.muted ? t("moUnmute") : t("moMute")}</button>`;
   keys.innerHTML = `${t("moKeys")}<small>${t("moUturn")}</small><small>${t("moProto")}</small>`;
+  compassTo(RIDE.bearing ?? 0);
   padL.innerHTML = `<button type="button" data-k="ArrowLeft" aria-label="${t("moLeftK")}">${ARR(0)}</button><button type="button" data-k="ArrowRight" aria-label="${t("moRightK")}">${ARR(180)}</button>`;
   padR.innerHTML = `<button type="button" data-k="ArrowDown">${t("moBrake")}</button><button type="button" data-k="ArrowUp">${t("moGas")}</button>`;
 }
@@ -3543,10 +3574,14 @@ document.getElementById("langBtn")?.addEventListener("click", () => requestAnima
 // ---------- 开始 / 结束 ----------
 let actx = null, eng = null, saved = null, crankT = 0, camInit = true, trailAt = 0, cardAt = 0, last = performance.now(), cardHtml = "";
 // 骑车视角（pollux 2026-11-21「视角高度按照 1x 的走」）：相机保持进入时的地图朝向，距离 = 1x 档位，只跟着车平移；不再低机位追尾转来转去
-const RIDE = { off: new THREE.Vector3(), mpp: 1 };   // off：相机相对车的偏移；mpp：1x 时每像素多少米，用来把车、导航线、箭头按屏幕像素定大小
-function rideView() {
-  const dir = camera.position.clone().sub(controls.target).normalize(), d = fitDist();
-  RIDE.off.copy(dir).multiplyScalar(d); RIDE.mpp = 2 * d * Math.tan((saved?.fov ?? camera.fov) * Math.PI / 360) / innerHeight;
+const RIDE = { off: new THREE.Vector3(), mpp: 1, bearing: null };   // off：相机相对车的偏移；mpp：1x 时每像素多少米，用来把车、导航线、箭头按屏幕像素定大小
+// bearing：屏幕正上方要对着的方向（弧度，x 东、z 南，同 hd()）。pollux 2026-11-21：起步时行驶方向朝画面上方、主会场在上方，再给指北针
+function rideView(bearing) {
+  const cur = camera.position.clone().sub(controls.target), d = fitDist();
+  const phi = Math.min(55, Math.max(30, Math.acos(cur.y / cur.length()) * 180 / Math.PI)) * Math.PI / 180;   // 俯角沿用进入时的（限在 30–55°，太平太俯都不好看路）
+  const fx = Math.cos(bearing), fz = Math.sin(bearing);
+  RIDE.off.set(-fx * Math.sin(phi), Math.cos(phi), -fz * Math.sin(phi)).multiplyScalar(d);   // 相机在目标的「后上方」，画面上方 = bearing
+  RIDE.bearing = bearing; compassTo(bearing); RIDE.mpp = 2 * d * Math.tan((saved?.fov ?? camera.fov) * Math.PI / 360) / innerHeight;
   bike.scale.setScalar(Math.max(SC, 30 * RIDE.mpp / 1.9));   // 车在屏幕上约 30 px 长
   arrowMk.scale.setScalar(Math.max(1, 28 * RIDE.mpp / 10)); goalMk.scale.setScalar(Math.max(1, 22 * RIDE.mpp / 7));
   camera.near = Math.max(2, d * 0.08); camera.far = d * 2 + 4000; camera.updateProjectionMatrix();
@@ -3563,12 +3598,13 @@ function startRide(mode) {
     saved = { pos: camera.position.clone(), tgt: controls.target.clone(), damp: controls.enableDamping, fov: camera.fov, near: camera.near, far: camera.far };
     ST.on = true; document.body.classList.add("riding"); controls.enabled = false; controls.enableDamping = false;
     routeGroup.visible = false; legGroup.visible = false;   // 已有步行导航路线先藏起来，下车再显示（不清掉）
-    UI.forEach((u) => (u.hidden = false)); bike.visible = true; camInit = true; last = performance.now(); rideView();
+    UI.forEach((u) => (u.hidden = false)); bike.visible = true; camInit = true; last = performance.now();
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();   // 空格（刹车）不再触发入口按钮
     try { actx ||= new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); if (!eng) eng = makeEngine(actx, actx.destination); if (ST.muted) eng.master.disconnect(); } catch { eng = null; }
     ST.rpm = 900; crankT = performance.now();   // 点火：从 900 转拉一下再落回怠速
   }
   const gEnd = r ? r.path.at(-1) : MS.goalPt;   // 终点圈放在最短路到达的那个入口
+  if (mode === "mission" || RIDE.bearing == null) rideView(Math.atan2(NP[gEnd][1] - NP[start][1], NP[gEnd][0] - NP[start][0]));   // 起点 → 终点的方向朝画面上方
   goalMk.visible = mode === "mission"; if (goalMk.visible) goalMk.position.set(NP[gEnd][0], 0, NP[gEnd][1]);
   trailAt = 0; renderStatic(); renderCard();
   showStreet(tx(MS.from.name), mode === "mission" ? MS.title() : t("moFree"));

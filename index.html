@@ -930,14 +930,14 @@ const D = window.OCT_DATA;   // 数据由 build-web.mjs 内联进 index.html（�
 const I18N = {
   zh: {
     dnCity: "深圳", dnCityS: "深圳", dnDay: "白天", dnNight: "夜间", dnAuto: "自动", dnManual: "手动", dnAria: "白天 / 夜间显示", dnTip: (r, st) => `深圳今天日出 ${r}、日落 ${st}；自动模式日落后换夜间`,   // oct-loft-daynight
-    footerShort: "© OpenStreetMap contributors (ODbL) · 示意图", slotMenuT: (i) => `视角 ${i}`, overwrite: "覆盖", del: "删除", viewsTab: "视角", go: "前往", isoRow: "等距视图", isoSub: "固定角度，可平移缩放", homeRow: "初始视角", homeSub: "回到园区全景", emptySlot: "空", saveHere: "+ 存当前", layersT: "图层", grab: "展开或收起面板", introM: "拖动旋转、双指缩放平移。点楼栋、地铁口、公交站看详情。", 
+    footerShort: "© OpenStreetMap contributors (ODbL) · 示意图", slotMenuT: (i) => `视角 ${i}`, overwrite: "覆盖", del: "删除", viewsTab: "视角", go: "前往", isoRow: "等距视图", isoSub: "固定角度，可平移缩放", homeRow: "自由模式", homeSub: "自由旋转、平移、缩放", emptySlot: "空", saveHere: "+ 存当前", layersT: "图层", grab: "展开或收起面板", introM: "拖动旋转、双指缩放平移。点楼栋、地铁口、公交站看详情。", 
     title: "OCT-LOFT 3D 场地地图", hub: "华侨城创意文化园 · 南山",
     intro: "拖动旋转、滚轮缩放、右键或双指平移。点楼栋、地铁口、公交站看详情；底部可切等距视图、存 3 个视角、导航到 C2。",
     hint: "点地图上任意位置作为起点（也可以点地铁口、公交站）",
     footer: "数据 © OpenStreetMap contributors (ODbL) · 2026-11-20 · 示意图，非测绘成果",
     close: "关闭", viewsNav: "视角与导航", layers: "图层筛选",
     lay_loft: "强调园区楼栋", lay_context: "周边楼", lay_major: "主干道", lay_roads: "支路", lay_metro: "地铁", lay_bus: "公交",
-    iso: "等距", isoAria: "等距视图（固定角度）", top: "俯视", topAria: "俯视图（2D，正北朝上）", topRow: "俯视图", topSub: "2D，正北朝上，可平移缩放", isoLocked: "已锁定角度", home: "初始",
+    iso: "等距", isoAria: "等距视图（固定角度）", top: "俯视", topAria: "俯视图（2D，正北朝上）", topRow: "俯视图", topSub: "2D，正北朝上，可平移缩放", isoLocked: "已锁定角度", home: "自由", homeAria: "自由模式（可旋转、平移、缩放）", freeOn: "当前",
     saveSlot: (i) => `+ 存视角 ${i}`, saveSlotAria: (i) => `把当前视角存到第 ${i} 格`, slot: (i) => `视角 ${i}`, delSlot: (i) => `删除视角 ${i}`, saveView: "+ 存视角", saveViewAria: "把当前视角存成一个新视角（最多 3 个）", viewsFull: "最多存 3 个视角，删掉一个再存", saveViewSub: (n, m) => `已存 ${n} / ${m}`,
     navC2: "导航到 C2", cancelPick: "取消选点",
     navFromHere: "从这里导航到 C2", navFromBldg: "从这栋楼导航到 C2",
@@ -966,14 +966,14 @@ const I18N = {
   },
   en: {
     dnCity: "Shenzhen", dnCityS: "SZ", dnDay: "Day", dnNight: "Night", dnAuto: "Auto", dnManual: "Manual", dnAria: "Day / night display", dnTip: (r, st) => `Shenzhen today: sunrise ${r}, sunset ${st}; Auto switches to night after sunset`,   // oct-loft-daynight
-    footerShort: "© OpenStreetMap contributors (ODbL) · indicative", slotMenuT: (i) => `View ${i}`, overwrite: "Overwrite", del: "Delete", viewsTab: "Views", go: "Go", isoRow: "Isometric view", isoSub: "Fixed angle; pan and zoom only", homeRow: "Start view", homeSub: "Back to the whole park", emptySlot: "Empty", saveHere: "+ Save current", layersT: "Layers", grab: "Expand or collapse the panel", introM: "Drag to rotate; pinch to zoom and pan. Tap buildings, metro exits or bus stops for details.", 
+    footerShort: "© OpenStreetMap contributors (ODbL) · indicative", slotMenuT: (i) => `View ${i}`, overwrite: "Overwrite", del: "Delete", viewsTab: "Views", go: "Go", isoRow: "Isometric view", isoSub: "Fixed angle; pan and zoom only", homeRow: "Free mode", homeSub: "Rotate, pan and zoom freely", emptySlot: "Empty", saveHere: "+ Save current", layersT: "Layers", grab: "Expand or collapse the panel", introM: "Drag to rotate; pinch to zoom and pan. Tap buildings, metro exits or bus stops for details.", 
     title: "OCT-LOFT 3D Venue Map", hub: "OCT-LOFT Creative Culture Park · Nanshan",
     intro: "Drag to rotate, scroll to zoom, right-drag to pan. Tap buildings, metro exits or bus stops for details. The bar below has the isometric view, 3 saved views and directions to C2.",
     hint: "Tap anywhere on the map to set a start point (metro exits and bus stops work too)",
     footer: "Data © OpenStreetMap contributors (ODbL) · 2026-11-20 · Indicative only, not a survey",
     close: "Close", viewsNav: "Views and directions", layers: "Layer filters",
     lay_loft: "Highlight park buildings", lay_context: "Nearby buildings", lay_major: "Main roads", lay_roads: "Minor roads", lay_metro: "Metro", lay_bus: "Bus",
-    iso: "Isometric", isoAria: "Isometric view (fixed angle)", top: "Top", topAria: "Top view (2D, north up)", topRow: "Top view", topSub: "2D, north up; pan and zoom only", isoLocked: "angle locked", home: "Reset",
+    iso: "Isometric", isoAria: "Isometric view (fixed angle)", top: "Top", topAria: "Top view (2D, north up)", topRow: "Top view", topSub: "2D, north up; pan and zoom only", isoLocked: "angle locked", home: "Free", homeAria: "Free mode (rotate, pan and zoom)", freeOn: "Current",
     saveSlot: (i) => `+ Save view ${i}`, saveSlotAria: (i) => `Save the current view to slot ${i}`, slot: (i) => `View ${i}`, delSlot: (i) => `Delete view ${i}`, saveView: "+ Save view", saveViewAria: "Save the current view as a new view (up to 3)", viewsFull: "Up to 3 views; delete one to save another", saveViewSub: (n, m) => `${n} / ${m} saved`,
     navC2: "Directions to C2", cancelPick: "Cancel",
     navFromHere: "Directions to C2 from here", navFromBldg: "Directions to C2 from this building",
@@ -1501,7 +1501,7 @@ function renderViewsDesktop() {
   const add = (label, cls, onClick, extra) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.onclick = onClick; if (extra) b.setAttribute("aria-label", extra); viewsBar.appendChild(b); return b; };
   add(t("iso"), "seg" + (isoLocked && !topMode ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria")).dataset.lock = t("isoLocked");
   add(t("top"), "seg" + (topMode ? " on" : ""), () => { curSlot = -1; goTo(topView()); renderViews(); }, t("topAria")).dataset.lock = t("isoLocked");
-  add(t("home"), "seg", () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); });
+  add(t("home"), "seg" + (!isoLocked ? " on" : ""), () => { curSlot = -1; if (isoLocked) goTo(VIEW_DEFAULT); renderViews(); }, t("homeAria"));   // 「初始」改「自由模式」（pollux 2026-11-21）：和等距 / 俯视三选一；已在自由模式时不跳回全景
   const sv = add(t("saveView"), "seg empty", addView, t("saveViewAria"));
   if (slots.length >= MAX_VIEWS) { sv.disabled = true; sv.title = t("viewsFull"); }
   slots.forEach((v, i) => {
@@ -1530,7 +1530,7 @@ function quickViews(el, onCur) {
   const add = (label, cls, fn, aria) => { const b = document.createElement("button"); b.type = "button"; b.className = cls; b.textContent = label; b.onclick = fn; if (aria) b.setAttribute("aria-label", aria); el.appendChild(b); return b; };
   add(t("iso"), "seg" + (isoLocked && !topMode ? " on" : ""), () => { curSlot = -1; goTo(isoView()); renderViews(); }, t("isoAria"));
   add(t("top"), "seg" + (topMode ? " on" : ""), () => { curSlot = -1; goTo(topView()); renderViews(); }, t("topAria"));
-  add(t("home"), "seg", () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); });
+  add(t("home"), "seg" + (!isoLocked ? " on" : ""), () => { curSlot = -1; if (isoLocked) goTo(VIEW_DEFAULT); renderViews(); }, t("homeAria"));   // 「初始」改「自由模式」（pollux 2026-11-21）：和等距 / 俯视三选一；已在自由模式时不跳回全景
   const sv = add("+", "seg slotb empty", addView, t("saveViewAria"));   // 存视角和等距、初始并列
   if (slots.length >= MAX_VIEWS) { sv.disabled = true; sv.title = t("viewsFull"); }
   if (slots.length) { const d = document.createElement("span"); d.className = "div"; el.appendChild(d); }
@@ -1544,7 +1544,7 @@ function viewRows(el) {
   const isoOn = isoLocked && !topMode;
   let h = row(t("isoRow"), t("isoSub"), `<button type="button" class="mghost${isoOn ? " on" : ""}" data-iso>${t(isoOn ? "isoLocked" : "go")}</button>`)
     + row(t("topRow"), t("topSub"), `<button type="button" class="mghost${topMode ? " on" : ""}" data-top>${t(topMode ? "isoLocked" : "go")}</button>`)
-    + row(t("homeRow"), t("homeSub"), `<button type="button" class="mghost" data-home>${t("go")}</button>`)
+    + row(t("homeRow"), t("homeSub"), `<button type="button" class="mghost${!isoLocked ? " on" : ""}" data-home>${t(!isoLocked ? "freeOn" : "go")}</button>`)
     + row(t("saveView").replace(/^\+ /, ""), slots.length >= MAX_VIEWS ? t("viewsFull") : t("saveViewSub", slots.length, MAX_VIEWS), `<button type="button" class="mghost add" data-save${slots.length >= MAX_VIEWS ? " disabled" : ""} aria-label="${t("saveViewAria")}">${t("saveHere")}</button>`);
   slots.forEach((v, i) => {
     h += row(t("slot", i + 1), curSlot === i ? "●" : "", `<button type="button" class="mghost${curSlot === i ? " on" : ""}" data-go="${i}">${t("go")}</button><button type="button" class="mghost" data-ow="${i}">${t("overwrite")}</button><button type="button" class="mghost" data-del="${i}" aria-label="${t("delSlot", i + 1)}">${t("del")}</button>`);
@@ -1552,7 +1552,7 @@ function viewRows(el) {
   el.innerHTML = h;
   el.querySelector("[data-iso]").onclick = () => { curSlot = -1; goTo(isoView()); renderViews(); };
   el.querySelector("[data-top]").onclick = () => { curSlot = -1; goTo(topView()); renderViews(); };
-  el.querySelector("[data-home]").onclick = () => { curSlot = -1; goTo(VIEW_DEFAULT); renderViews(); };
+  el.querySelector("[data-home]").onclick = () => { curSlot = -1; if (isoLocked) goTo(VIEW_DEFAULT); renderViews(); };
   el.querySelectorAll("[data-go]").forEach((b) => b.onclick = () => { const i = +b.dataset.go; curSlot = i; goTo(slots[i]); renderViews(); });
   el.querySelectorAll("[data-ow]").forEach((b) => b.onclick = () => { const i = +b.dataset.ow; slots[i] = currentView(); curSlot = i; saveSlots(); renderViews(); });
   el.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => delView(+b.dataset.del));
@@ -3036,6 +3036,66 @@ window.__ready = true;
     });
   }
 
+  // ---------- 拆礼物彩纸（pollux 2026-11-21 选 C）：这次打开页面后第一次打开礼物口袋时，口袋喷一把彩纸；每栋快闪店刷好色时屋顶再放一小朵 ----------
+  // 2D canvas 盖在地图上（pointer-events:none，不挡操作），约 2 s 淡出；系统「减少动态效果」时不播。颜色 = 各家品牌色 + lime + 品牌棕 + 白
+  const confetti = (() => {
+    const COLORS = [...new Set([...SPS.map((s) => s.brand?.color).filter(Boolean), "#dfff2f", "#6d3425", "#ffffff"])];
+    let cv = null, g = null, parts = [], last = 0, running = false, played = false;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    function ensure() {
+      if (cv) return;
+      cv = document.createElement("canvas"); cv.id = "spConfetti"; cv.setAttribute("aria-hidden", "true");
+      cv.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:7";
+      document.body.appendChild(cv); g = cv.getContext("2d"); fit(); addEventListener("resize", fit);
+    }
+    function fit() { const r = devicePixelRatio || 1; cv.width = innerWidth * r; cv.height = innerHeight * r; g.setTransform(r, 0, 0, r, 0, 0); }
+    const paper = (x, y, vx, vy) => ({ x, y, vx, vy, w: rnd(6, 10), h: rnd(10, 16), rot: rnd(0, 6.28), vr: rnd(-8, 8), ph: rnd(0, 6.28), vp: rnd(6, 12), c: COLORS[(Math.random() * COLORS.length) | 0], life: 0, ttl: rnd(1.8, 2.6) });
+    function burst(x, y, n, spread, speed) {
+      ensure();
+      for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + rnd(-spread, spread), v = rnd(...speed); parts.push(paper(x, y, Math.cos(a) * v, Math.sin(a) * v)); }
+      if (!running) { running = true; last = performance.now(); requestAnimationFrame(tick); }
+    }
+    function tick(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      g.clearRect(0, 0, innerWidth, innerHeight);
+      parts = parts.filter((p) => p.life < p.ttl && p.y < innerHeight + 60);
+      for (const p of parts) {
+        p.life += dt; p.vx -= p.vx * 2.4 * dt; p.vy += 620 * dt; p.vy -= p.vy * (p.vy > 0 ? 1.8 : 0.6) * dt;   // 落下时阻力大，像纸一样飘
+        p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; p.ph += p.vp * dt;
+        g.globalAlpha = Math.min(1, (p.ttl - p.life) / 0.5);
+        g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.scale(Math.cos(p.ph), 1);
+        g.fillStyle = p.c; g.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        if (p.c === "#ffffff") { g.strokeStyle = "#d8d1cb"; g.lineWidth = 1; g.strokeRect(-p.w / 2, -p.h / 2, p.w, p.h); }
+        g.restore();
+      }
+      g.globalAlpha = 1;
+      if (parts.length) requestAnimationFrame(tick); else { running = false; g.clearRect(0, 0, innerWidth, innerHeight); }
+    }
+    // 起点：桌面是左下口袋入口；手机口袋放进面板，取面板顶边中间
+    function origin() {
+      const r = entry.getBoundingClientRect();
+      if (!MOBILE && r.width) return [r.left + r.width / 2, r.top + 10];
+      const sh = parseFloat(document.body.style.getPropertyValue("--sheetH")) || innerHeight * 0.45;
+      return [innerWidth / 2, innerHeight - sh];
+    }
+    function play() {
+      if (played || matchMedia("(prefers-reduced-motion: reduce)").matches) return; played = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const [x, y] = origin(); burst(x, y, 70, 0.85, [600, 1000]);
+        // 快闪店刷好时（错开 120 ms、0.9 s 刷完）在楼顶上方各放一小朵；楼不在画面里就跳过
+        POP.forEach((p, i) => setTimeout(() => {
+          if (!popActive()) return;
+          const [bx, bz] = centroid(p.m.userData.b.ring), v = new THREE.Vector3(bx, p.m.userData.b.h + 4, bz).project(camera);
+          const sx = (v.x + 1) / 2 * innerWidth, sy = (1 - v.y) / 2 * innerHeight;
+          if (v.z > 1 || sx < 0 || sy < 0 || sx > innerWidth || sy > innerHeight) return;
+          burst(sx, sy, 22, 1.4, [250, 450]);
+        }, 1100 + i * 120));
+      }));
+    }
+    return { play, active: () => running };
+  })();
+  window.__spConfetti = () => confetti.active();   // 自查用
+
   // ---------- 口袋面板 ----------
   const ov = document.createElement("section"); ov.className = "sp-ov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "false");
   document.body.appendChild(ov);
@@ -3051,6 +3111,7 @@ window.__ready = true;
     if (typeof setPicking === "function" && picking) setPicking(false);
     if (!detailId || detailId !== focusSp) focusSp = null;   // 回到正在地图上看的那一家时，地图标记保留
     sponsorView();
+    confetti.play();   // 第一次打开礼物口袋：拆礼物彩纸
     isOpen = true; tab = tb; cur = SPS.find((x) => x.id === detailId) || null; view = cur ? "detail" : "list"; ov.classList.add("on"); document.body.classList.add("sp-open");
     if (MOBILE) { sheetBody.prepend(ov); document.body.classList.add("sp-in-sheet"); setLevel(1); sheetBody.scrollTop = 0; }
     render(); updateEntry();

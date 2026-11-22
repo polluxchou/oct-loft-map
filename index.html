@@ -3333,7 +3333,9 @@ Object.assign(I18N.zh, {
   moLeft: (m) => `还有 ${m} m`, moTime: "用时", moDone: "送达！", moScore: "风云值", moWalk: (m, min) => `同一条路走路约 ${min} 分钟（${m} m）`,
   moAgain: "再骑一次", moToFree: "随便逛逛", moNext: (d) => `下个路口：${d}`, moL: "左转", moR: "右转", moS: "直行", moInto: (n) => `进 ${n}`,
   moPass: (b) => `经过 ${b}`, moStairs: "台阶：下车推行", moUturn: "停稳后长按 ↓ 掉头",
-  moKeys: "↑ 油门　↓ 刹车　← → 选下个路口", moCompass: "指北针：棕色尖头指向北", moProto: "原型 · 速度和风云值都是示意", moGas: "油门", moBrake: "刹车", moLeftK: "左", moRightK: "右",
+  moKeys: "↑ 油门　↓ 刹车　← → 选下个路口", moCompass: "指北针：棕色尖头指向北",
+  pkT: "从哪个地铁口出发？", pkSub: "骑到 C2 主会场，路上会提示每个路口怎么走", pkNear: "最近", pkRow: (m, min) => `骑到 C2 ${m} m · 走路约 ${min} 分钟`, pkClose: "关闭",
+  pkSt: (n) => `${n}站`, pkExit: (r) => `${r} 口`, pkFrom: (n) => `从${n}出发`, pkDesc: (n) => `从${n}出发，把开幕咖啡送到 C2 主会场`, moProto: "原型 · 速度和风云值都是示意", moGas: "油门", moBrake: "刹车", moLeftK: "左", moRightK: "右",
 });
 Object.assign(I18N.en, {
   moEnter: "Ride the map", moGame: "OCT Rush", moExit: "Exit ride", moMute: "Mute", moUnmute: "Sound",
@@ -3341,7 +3343,9 @@ Object.assign(I18N.en, {
   moLeft: (m) => `${m} m to go`, moTime: "Time", moDone: "Delivered!", moScore: "Rush points", moWalk: (m, min) => `On foot the same way: about ${min} min (${m} m)`,
   moAgain: "Ride again", moToFree: "Just ride", moNext: (d) => `Next junction: ${d}`, moL: "left", moR: "right", moS: "straight", moInto: (n) => `onto ${n}`,
   moPass: (b) => `Passing ${b}`, moStairs: "Stairs: walk the bike", moUturn: "Stop, then hold ↓ to turn round",
-  moKeys: "↑ throttle  ↓ brake  ← → pick next turn", moCompass: "Compass: the brown tip points north", moProto: "Prototype · speeds and points are illustrative", moGas: "Throttle", moBrake: "Brake", moLeftK: "Left", moRightK: "Right",
+  moKeys: "↑ throttle  ↓ brake  ← → pick next turn", moCompass: "Compass: the brown tip points north",
+  pkT: "Which metro exit are you starting from?", pkSub: "Ride to C2; every junction tells you which way to go", pkNear: "Closest", pkRow: (m, min) => `${m} m to C2 · about ${min} min on foot`, pkClose: "Close",
+  pkSt: (n) => `${n} Station`, pkExit: (r) => `Exit ${r}`, pkFrom: (n) => `From ${n}`, pkDesc: (n) => `Start at ${n} and deliver the opening coffee to C2`, moProto: "Prototype · speeds and points are illustrative", moGas: "Throttle", moBrake: "Brake", moLeftK: "Left", moRightK: "Right",
 });
 
 // ---------- 路网工具（只读 G / adj，不改步行导航）----------
@@ -3466,6 +3470,7 @@ arrowMk.visible = false; arrowMk.renderOrder = 7; scene.add(arrowMk);
 // ---------- UI ----------
 const css = document.createElement("style");
 css.textContent = `
+.mo[hidden] { display:none !important; }   /* .mo-tr / .mo-pad / .mo-pick 等用了 display:flex，会盖过 hidden 属性：退出骑车后按钮还留在地图上 */
 body.riding > *:not(#c):not(#labels):not(.mo):not(script):not(style) { display:none !important; }
 body.riding #labels > *:not(#leaders):not(.loft):not(.c2):not(.c2flag):not(.road) { display:none !important; }
 .mo { position:fixed; z-index:20; font:inherit; color:var(--ink); }
@@ -3474,7 +3479,7 @@ body.riding #labels > *:not(#leaders):not(.loft):not(.c2):not(.c2flag):not(.road
 .mo-exit { display:inline-flex; align-items:center; gap:6px; }
 .mo-tr .mo-cmp { order:3; }
 .mo-cmp { width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; }
-.mo-cmp svg { transition:transform .3s; }
+.mo-cmp svg { will-change:transform; }
 .mo-btn:focus-visible, .mo-pad button:focus-visible, .mo-wide:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
 .mo-card { top:16px; left:16px; width:min(380px, calc(100vw - 32px - 132px)); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
 .mo-card .k { font-size:13px; color:var(--muted); display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
@@ -3521,12 +3526,12 @@ tip.setAttribute("role", "status"); street.setAttribute("aria-live", "polite"); 
 const UI = [card, tr, tip, street, spd, keys, padL, padR];
 const ARR = (r) => `<svg viewBox="0 0 24 24" width="26" height="26" style="transform:rotate(${r}deg)" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`;
 // 指北针：只在起步定朝向时转一次（骑行中地图朝向不变）。屏幕上方 = bearing，北 = -90°，指针顺时针转 (北 - bearing)
-let cmpDeg = 0;
-function compassTo(bearing) { cmpDeg = ((-Math.PI / 2 - bearing) * 180 / Math.PI + 540) % 360 - 180; const c = tr.querySelector(".mo-cmp svg"); if (c) c.style.transform = `rotate(${cmpDeg}deg)`; }
+let cmpDeg = 0, cmpAt = 0;
+function compassTo(bearing) { cmpAt = bearing; cmpDeg = ((-Math.PI / 2 - bearing) * 180 / Math.PI + 540) % 360 - 180; const c = tr.querySelector(".mo-cmp svg"); if (c) c.style.transform = `rotate(${cmpDeg}deg)`; }
 function renderStatic() {
   tr.innerHTML = `<div class="mo-cmp" role="img" aria-label="${t("moCompass")}"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M12 2.5 15.5 12h-7Z" fill="#6d3425"/><path d="M12 21.5 8.5 12h7Z" fill="none" stroke="#b9b1aa" stroke-width="1.5" stroke-linejoin="round"/></svg></div><button type="button" class="mo-btn pri mo-exit" data-a="exit"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>${t("moExit")}</button><button type="button" class="mo-btn" data-a="mute" aria-pressed="${ST.muted}">${ST.muted ? t("moUnmute") : t("moMute")}</button>`;
   keys.innerHTML = `${t("moKeys")}<small>${t("moUturn")}</small><small>${t("moProto")}</small>`;
-  compassTo(RIDE.bearing ?? 0);
+  compassTo(RIDE.bearing);
   padL.innerHTML = `<button type="button" data-k="ArrowLeft" aria-label="${t("moLeftK")}">${ARR(0)}</button><button type="button" data-k="ArrowRight" aria-label="${t("moRightK")}">${ARR(180)}</button>`;
   padR.innerHTML = `<button type="button" data-k="ArrowDown">${t("moBrake")}</button><button type="button" data-k="ArrowUp">${t("moGas")}</button>`;
 }
@@ -3558,7 +3563,7 @@ function showStreet(name, sub) { street.innerHTML = ""; street.append(name || ""
 
 // ---------- 入口：桌面放进底部视角条；手机放在底部面板收起时那一格（「导航到 C2」平时不显示，选点时让给「取消选点」）----------
 const BIKE_IC = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M8.5 17h6l2.5-7h-3M17 10l-1.5-4H13M5.5 17 8 11h5"/></svg>';
-function entryBtn(cls) { const b = document.createElement("button"); b.type = "button"; b.className = cls + " mo-enter"; b.dataset.mo = "1"; b.innerHTML = BIKE_IC + `<span>${t("moEnter")}</span>`; b.onclick = () => { MS = M1; startRide("mission"); }; return b; }
+function entryBtn(cls) { const b = document.createElement("button"); b.type = "button"; b.className = cls + " mo-enter"; b.dataset.mo = "1"; b.innerHTML = BIKE_IC + `<span>${t("moEnter")}</span>`; b.onclick = () => openPick(); return b; }
 const _renderViews = renderViews;
 renderViews = function () {
   _renderViews.apply(this, arguments);
@@ -3571,17 +3576,66 @@ select = function () { if (ST.on) return; return _select.apply(this, arguments);
 // 切语言：入口按钮和骑车 UI 的文案跟着换
 document.getElementById("langBtn")?.addEventListener("click", () => requestAnimationFrame(() => { document.querySelectorAll("button[data-mo] span").forEach((s) => (s.textContent = t("moEnter"))); if (ST.on) { renderStatic(); renderCard(); } }));
 
+// ---------- 骑车前选地铁口（pollux 2026-11-22「摩托车模式启动前，选择对应的地铁口（优先做地铁口模式）」）----------
+// pollux 2026-11-22 选 A 清单卡：按站分组，站按最近出口排序，每个出口一行写骑到 C2 的路网距离和走路分钟，最近的标「最近」。选定后从该出口出发骑到 C2。
+const EXITS = (() => {   // 每个出口：到 C2 的路网距离（同步行导航），按站分组、站按最近出口排序
+  const rows = D.exits.map((e) => { const n = nearestNode(e.p), r = n >= 0 ? dijkstra(n, M1.goals) : null; return { e, len: r ? Math.round(r.len + Math.hypot(NP[n][0] - e.p[0], NP[n][1] - e.p[1])) : Infinity }; }).filter((x) => isFinite(x.len));
+  const st = new Map(); for (const x of rows) { (st.get(x.e.station) || st.set(x.e.station, []).get(x.e.station)).push(x); }
+  const groups = [...st.entries()].map(([name, xs]) => { xs.sort((a, b) => a.len - b.len); const s0 = D.stations.find((q) => q.name === name); return { name, nameEn: s0?.nameEn || xs[0].e.nameEn.split(" Station")[0], p: s0?.p || xs[0].e.p, xs }; });
+  groups.sort((a, b) => a.xs[0].len - b.xs[0].len); return groups;
+})();
+const nearestExit = EXITS[0]?.xs[0];
+const exitPlace = (e) => ({ p: e.p, name: { zh: e.name, en: e.nameEn } });
+function rideFrom(e) { closePick(); MS = mkMission(exitPlace(e), C2_PLACE, () => `${t("moM1")} · ${lang === "en" ? `${e.nameEn.split(" Station")[0]} Exit ${e.ref}` : `${e.station} ${e.ref} 口`}`, () => t("pkDesc", tx({ zh: e.name, en: e.nameEn }))); startRide("mission"); }
+const pick = document.createElement("div"); pick.className = "mo mo-pick"; pick.hidden = true; pick.setAttribute("role", "dialog"); pick.setAttribute("aria-modal", "true"); document.body.appendChild(pick);
+let picking = false;
+const pcss = document.createElement("style");
+pcss.textContent = `
+.mo-pick { inset:0; display:flex; align-items:center; justify-content:center; z-index:30; }
+.mo-pick .box { width:min(440px, calc(100vw - 32px)); max-height:min(640px, calc(100vh - 32px)); overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.mo-pick .hd { display:flex; align-items:flex-start; gap:10px; } .mo-pick .hd > div { flex:1; min-width:0; }
+.mo-pick h2 { font-size:18px; margin:0; line-height:1.3; } .mo-pick .sub { font-size:13px; color:var(--muted); margin:2px 0 0; }
+.mo-pick .x { flex:none; width:44px; height:44px; border:1px solid var(--line); border-radius:8px; background:var(--surface); font-size:20px; color:var(--ink); cursor:pointer; }
+.mo-pick h3 { font-size:13px; color:var(--muted); font-weight:650; margin:0 0 6px; display:flex; align-items:center; gap:6px; }
+.mo-pick h3 i { display:inline-block; width:16px; height:16px; border-radius:4px; background:var(--metro); color:#fff; font-style:normal; font-size:11px; font-weight:700; line-height:16px; text-align:center; }
+.mo-pick ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.mo-pick li button { width:100%; min-height:52px; display:flex; align-items:center; gap:12px; text-align:left; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; padding:6px 12px; cursor:pointer; }
+.mo-pick li button:hover, .mo-pick li button:focus-visible { background:#faf9f7; outline:none; border-color:var(--segline); }
+.mo-pick li .r { font-size:16px; font-weight:700; min-width:48px; } .mo-pick li .m { flex:1; min-width:0; font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.mo-pick li .tag { font-size:12px; font-weight:650; background:var(--accent); border:1px solid #829700; border-radius:4px; padding:0 6px; color:var(--ink); }
+@media (max-width:640px) { .mo-pick { align-items:flex-end; padding-bottom:16px; } .mo-pick .box { max-height:70vh; } }
+body.mo-picking > *:not(#c):not(#labels):not(.mo):not(script):not(style) { display:none !important; }
+body.mo-picking #labels > *:not(#leaders):not(.loft):not(.c2):not(.c2flag):not(.road) { display:none !important; }
+`;
+document.head.appendChild(pcss);
+function openPick() {
+  if (ST.on) return;
+  const walk = (m) => Math.max(1, Math.round(m / 75));
+  const g = EXITS.map((G0) => `<section><h3><i aria-hidden="true">M</i>${esc(t("pkSt", tx({ zh: G0.name, en: G0.nameEn })))}</h3><ul>${G0.xs.map((x) => `<li><button type="button" data-ex="${D.exits.indexOf(x.e)}"><span class="r">${esc(t("pkExit", x.e.ref))}</span><span class="m">${t("pkRow", x.len, walk(x.len))}</span>${x === nearestExit ? `<span class="tag">${t("pkNear")}</span>` : ""}</button></li>`).join("")}</ul></section>`).join("");
+  pick.innerHTML = `<div class="box"><div class="hd"><div><h2>${t("pkT")}</h2><p class="sub">${t("pkSub")}</p></div><button type="button" class="x" data-close aria-label="${t("pkClose")}">×</button></div>${g}</div>`;
+  pick.hidden = false; picking = true; document.body.classList.add("mo-picking");   // 选的时候收起页面其他面板，不叠在顶栏 / 底栏上
+  pick.querySelector("[data-ex]")?.focus({ preventScroll: true });
+}
+function closePick() {
+  picking = false; pick.hidden = true; document.body.classList.remove("mo-picking");
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+for (const host of [pick, document.body]) host.addEventListener("click", (e) => {
+  if (!picking) return;
+  const ex = e.target.closest("[data-ex]"); if (ex) { e.stopPropagation(); rideFrom(D.exits[+ex.dataset.ex]); return; }
+  if (e.target.closest("[data-close]") || e.target === pick) { e.stopPropagation(); closePick(); }
+});
+addEventListener("keydown", (e) => { if (picking && e.key === "Escape") { e.stopImmediatePropagation(); closePick(); } }, true);
+
 // ---------- 开始 / 结束 ----------
 let actx = null, eng = null, saved = null, crankT = 0, camInit = true, trailAt = 0, cardAt = 0, last = performance.now(), cardHtml = "";
 // 骑车视角（pollux 2026-11-21「视角高度按照 1x 的走」）：相机保持进入时的地图朝向，距离 = 1x 档位，只跟着车平移；不再低机位追尾转来转去
-const RIDE = { off: new THREE.Vector3(), mpp: 1, bearing: null };   // off：相机相对车的偏移；mpp：1x 时每像素多少米，用来把车、导航线、箭头按屏幕像素定大小
+const RIDE = { off: new THREE.Vector3(), mpp: 1, bearing: 0, phi: 0.7, d: 1500 };   // off：相机相对车的偏移；mpp：1x 时每像素多少米，用来把车、导航线、箭头按屏幕像素定大小
 // bearing：屏幕正上方要对着的方向（弧度，x 东、z 南，同 hd()）。pollux 2026-11-21：起步时行驶方向朝画面上方、主会场在上方，再给指北针
 function rideView(bearing) {
   const cur = camera.position.clone().sub(controls.target), d = fitDist();
   const phi = Math.min(55, Math.max(30, Math.acos(cur.y / cur.length()) * 180 / Math.PI)) * Math.PI / 180;   // 俯角沿用进入时的（限在 30–55°，太平太俯都不好看路）
-  const fx = Math.cos(bearing), fz = Math.sin(bearing);
-  RIDE.off.set(-fx * Math.sin(phi), Math.cos(phi), -fz * Math.sin(phi)).multiplyScalar(d);   // 相机在目标的「后上方」，画面上方 = bearing
-  RIDE.bearing = bearing; compassTo(bearing); RIDE.mpp = 2 * d * Math.tan((saved?.fov ?? camera.fov) * Math.PI / 360) / innerHeight;
+  RIDE.phi = phi; RIDE.d = d; RIDE.bearing = bearing; compassTo(bearing); RIDE.mpp = 2 * d * Math.tan((saved?.fov ?? camera.fov) * Math.PI / 360) / innerHeight;
   bike.scale.setScalar(Math.max(SC, 30 * RIDE.mpp / 1.9));   // 车在屏幕上约 30 px 长
   arrowMk.scale.setScalar(Math.max(1, 28 * RIDE.mpp / 10)); goalMk.scale.setScalar(Math.max(1, 22 * RIDE.mpp / 7));
   camera.near = Math.max(2, d * 0.08); camera.far = d * 2 + 4000; camera.updateProjectionMatrix();
@@ -3604,7 +3658,7 @@ function startRide(mode) {
     ST.rpm = 900; crankT = performance.now();   // 点火：从 900 转拉一下再落回怠速
   }
   const gEnd = r ? r.path.at(-1) : MS.goalPt;   // 终点圈放在最短路到达的那个入口
-  if (mode === "mission" || RIDE.bearing == null) rideView(Math.atan2(NP[gEnd][1] - NP[start][1], NP[gEnd][0] - NP[start][0]));   // 起点 → 终点的方向朝画面上方
+  rideView(ST.h);   // 车头朝上（pollux 2026-11-22「默认车头（行驶方向）朝上」）：起步就按车头方向摆地图，骑行中跟着车头平滑转
   goalMk.visible = mode === "mission"; if (goalMk.visible) goalMk.position.set(NP[gEnd][0], 0, NP[gEnd][1]);
   trailAt = 0; renderStatic(); renderCard();
   showStreet(tx(MS.from.name), mode === "mission" ? MS.title() : t("moFree"));
@@ -3686,7 +3740,11 @@ function updateTrail(now) {
   else ST.nextTxt = "";
 }
 const camP = new THREE.Vector3(), camT = new THREE.Vector3(), wantP = new THREE.Vector3(), wantT = new THREE.Vector3();
-function updateCam(dt) {   // 1x 高度、地图朝向不变，相机只平移跟车；车稍微往行进方向留一点空
+function updateCam(dt) {   // 1x 高度、车头朝上：地图朝向跟着车头平滑转（约 0.6 s 跟上），停车时不转；车往行进方向留一点空
+  if (ST.v > 0.3 || camInit) { RIDE.bearing += wrapA(ST.h - RIDE.bearing) * (camInit ? 1 : Math.min(1, dt * 1.6)); }
+  const fx = Math.cos(RIDE.bearing), fz = Math.sin(RIDE.bearing), sp = Math.sin(RIDE.phi);
+  RIDE.off.set(-fx * sp, Math.cos(RIDE.phi), -fz * sp).multiplyScalar(RIDE.d);   // 相机在车的「后上方」，画面上方 = 车头方向
+  if (Math.abs(wrapA(RIDE.bearing - cmpAt)) > 0.01) compassTo(RIDE.bearing);
   const lead = innerHeight * 0.1 * RIDE.mpp;
   wantT.set(ST.x + Math.cos(ST.h) * lead, 0, ST.z + Math.sin(ST.h) * lead); wantP.copy(wantT).add(RIDE.off);
   if (camInit) { camP.copy(wantP); camT.copy(wantT); camInit = false; }
@@ -3708,7 +3766,8 @@ cameraGuard = function () {
 
 // 测试 / 以后的游戏层用：外部可以开始、结束、模拟按键
 window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMission({ p: from, name: { zh: "", en: "" } }, C2_PLACE, () => t("moM1"), () => t("moM1d")) : M1; startRide(mode); },   // from：测试用的起点 [x, z] stop: stopRide, press, state: ST, mission: () => MS, finish,
-  stop: stopRide, press, state: ST, mission: () => MS, finish,
+  screenHeading() { const a = new THREE.Vector3(ST.x, 0, ST.z).project(camera), b = new THREE.Vector3(ST.x + Math.cos(ST.h) * 50, 0, ST.z + Math.sin(ST.h) * 50).project(camera); return Math.round(Math.atan2((b.x - a.x) * innerWidth, (b.y - a.y) * innerHeight) * 180 / Math.PI); },   // 测试用：车头在屏幕上偏离正上方几度（0 = 朝上，正 = 偏右）
+  stop: stopRide, press, state: ST, mission: () => MS, finish, openPick, closePick, rideFrom: (i) => rideFrom(D.exits[i]), exits: () => EXITS.map((g) => [g.name, g.xs.map((x) => [x.e.ref, x.len])]),
   audio: () => ({ ctx: actx ? actx.state : null, engine: !!eng }),
   loftAt: (n) => { const b = LOFTS.find((x) => x.name === n); return b ? b.ring.reduce((s, q) => [s[0] + q[0] / b.ring.length, s[1] + q[1] / b.ring.length], [0, 0]) : null; },
   // 测试用：前方路口要按哪个方向才会沿最短路走（0 直行 / -1 左 / 1 右；null = 前面没有路口或怎么按都不对）

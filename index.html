@@ -3733,10 +3733,8 @@ function updateTrail(now) {
   if (ST.mode !== "mission" || ST.done) { ST.remain = 0; ST.nextTxt = ""; return; }
   const r = dijkstra(ST.b, MS.goals);
   ST.remain = r ? r.len + Math.hypot(NP[ST.b][0] - ST.x, NP[ST.b][1] - ST.z) : 0;
-  if (r && r.path.length) {   // 前方约 160 m 的导航线（像游戏里的 GPS 线），不画整条，留给玩家自己记路
-    const pts = [[ST.x, ST.z], ...r.path.map((i) => NP[i])];
-    let acc = 0, cut = pts.length; for (let i = 1; i < pts.length; i++) { acc += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); if (acc > 200) { cut = i + 1; break; } }
-    const p2 = pts.slice(0, cut);
+  if (r && r.path.length) {   // 导航线从车画到 C2 终点圈（pollux 2026-11-24：为了让人认路，要一直标到 C2，不再只画前方 200 m）
+    const p2 = [[ST.x, ST.z], ...r.path.map((i) => NP[i])];
     if (p2.length > 1) { const w = Math.max(3.6, 7 * RIDE.mpp), m1 = new THREE.Mesh(ribbon(p2, w * 1.5, 0.9), trailEdge), m2 = new THREE.Mesh(ribbon(p2, w, 1.0), trailMat); m1.renderOrder = 5; m2.renderOrder = 6; trail.add(m1, m2); }
   }
   const j = nextJunction(ST.a, ST.b, ST.s);   // 前方路口：地上箭头 + 任务卡预告

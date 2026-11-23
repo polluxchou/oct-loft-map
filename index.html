@@ -3322,20 +3322,24 @@ window.__ready = true;
 // routeGroup / legGroup / lastRoute / panel / renderViews / select / cameraGuard / controls / camera / scene / MOBILE / I18N / t / tx。
 // 接法：只包一层 renderViews（放入口）、select（骑车时不开卡片）、cameraGuard（骑车时由本段接管相机）；不改这些函数本身，也不改步行导航逻辑。
 // 车：参考 N1s 的外形语言（侧面轮廓拉伸的一体车身、圆头灯、黑长座），自建低多边形模型，不用对方的模型、logo 或贴图。
-// 声音：燃油单缸四冲程，Web Audio 实时合成（每次点火排一个「排气噗」，思路参考 Antonio-R1/engine-sound-generator，MIT，没有复制代码；不下载录音）。
+// 声音：原为燃油单缸引擎声；2026-11-24 车种改电动自行车（南山全区禁摩），换成电机啸叫 + 轮胎噪声，Web Audio 实时合成，不下载录音。
 // 操作：只沿导航用的路网 G 走，到路口用 ← → 预选往哪拐；↑ 油门、↓ 刹车，停稳后长按 ↓ 掉头。桌面键盘，手机屏幕按钮（≥ 44 px）。
 {
 const SC = 3;                               // 车模放大倍数：真车约 1.8 m，地图上放大 3 倍才看得清
-const VMAX = { 0: 12.5, 1: 6, 2: 1.4 };     // m/s：道路 45 km/h（示意）、园区小路 22 km/h、台阶推行 5 km/h
+// 车种改成电动自行车（pollux 2026-11-24）：深圳 2026-01-01 至 2028-12-31 南山全区全天禁摩（深圳市公安局交通管理局 2025-12-18 通告）。
+// 限速：非机动车道 15 km/h（《道路交通安全法》第 58 条）；车本身上限 25 km/h（GB 17761-2024）；园区小路 10 km/h（示意，园区没有公开限速）；台阶下车推行 5 km/h
+const VMAX = { 0: 15 / 3.6, 1: 10 / 3.6, 2: 5 / 3.6 };   // m/s
+// 快进：1x 视角下车画成约 30 px（等于放大 13–25 倍），按真实速度走看起来像在爬；地图上按 8 倍时间走，仪表照实显示 km/h 并标「×8 快进」（pollux 选 A）
+const TIME_X = 8;
 Object.assign(I18N.zh, {
   moEnter: "骑车认路", moGame: "OCT风云", moExit: "退出骑车", moMute: "静音", moUnmute: "声音",
   moFree: "自由骑行", moMission: "任务", moM1: "首单外送", moM1d: "从侨城北 B 口出发，把开幕咖啡送到 C2 主会场",
   moLeft: (m) => `还有 ${m} m`, moTime: "用时", moDone: "送达！", moScore: "风云值", moWalk: (m, min) => `同一条路走路约 ${min} 分钟（${m} m）`,
   moAgain: "再骑一次", moToFree: "随便逛逛", moNext: (d) => `下个路口：${d}`, moL: "左转", moR: "右转", moS: "直行", moInto: (n) => `进 ${n}`,
   moPass: (b) => `经过 ${b}`, moStairs: "台阶：下车推行", moUturn: "停稳后长按 ↓ 掉头",
-  moKeys: "↑ 油门　↓ 刹车　← → 选下个路口", moCompass: "指北针：棕色尖头指向北",
+  moKeys: "↑ 加速　↓ 刹车　← → 选下个路口", moCompass: "指北针：棕色尖头指向北",
   pkT: "从哪个地铁口出发？", pkSub: "骑到 C2 主会场，路上会提示每个路口怎么走", pkNear: "最近", pkRow: (m, min) => `骑到 C2 ${m} m · 走路约 ${min} 分钟`, pkClose: "关闭",
-  pkSt: (n) => `${n}站`, pkExit: (r) => `${r} 口`, pkFrom: (n) => `从${n}出发`, pkDesc: (n) => `从${n}出发，把开幕咖啡送到 C2 主会场`, moProto: "原型 · 速度和风云值都是示意", moGas: "油门", moBrake: "刹车", moLeftK: "左", moRightK: "右",
+  pkSt: (n) => `${n}站`, pkExit: (r) => `${r} 口`, pkFrom: (n) => `从${n}出发`, pkDesc: (n) => `从${n}出发，把开幕咖啡送到 C2 主会场`, moProto: "原型 · 速度按深圳电动自行车限速，风云值是示意", moGas: "加速", moFast: (x) => `×${x} 快进`, moReal: (min, m) => `按这次的骑法，实际骑行约 ${min} 分钟（${m} m）`, moBrake: "刹车", moLeftK: "左", moRightK: "右",
 });
 Object.assign(I18N.en, {
   moEnter: "Ride the map", moGame: "OCT Rush", moExit: "Exit ride", moMute: "Mute", moUnmute: "Sound",
@@ -3343,9 +3347,9 @@ Object.assign(I18N.en, {
   moLeft: (m) => `${m} m to go`, moTime: "Time", moDone: "Delivered!", moScore: "Rush points", moWalk: (m, min) => `On foot the same way: about ${min} min (${m} m)`,
   moAgain: "Ride again", moToFree: "Just ride", moNext: (d) => `Next junction: ${d}`, moL: "left", moR: "right", moS: "straight", moInto: (n) => `onto ${n}`,
   moPass: (b) => `Passing ${b}`, moStairs: "Stairs: walk the bike", moUturn: "Stop, then hold ↓ to turn round",
-  moKeys: "↑ throttle  ↓ brake  ← → pick next turn", moCompass: "Compass: the brown tip points north",
+  moKeys: "↑ speed up  ↓ brake  ← → pick next turn", moCompass: "Compass: the brown tip points north",
   pkT: "Which metro exit are you starting from?", pkSub: "Ride to C2; every junction tells you which way to go", pkNear: "Closest", pkRow: (m, min) => `${m} m to C2 · about ${min} min on foot`, pkClose: "Close",
-  pkSt: (n) => `${n} Station`, pkExit: (r) => `Exit ${r}`, pkFrom: (n) => `From ${n}`, pkDesc: (n) => `Start at ${n} and deliver the opening coffee to C2`, moProto: "Prototype · speeds and points are illustrative", moGas: "Throttle", moBrake: "Brake", moLeftK: "Left", moRightK: "Right",
+  pkSt: (n) => `${n} Station`, pkExit: (r) => `Exit ${r}`, pkFrom: (n) => `From ${n}`, pkDesc: (n) => `Start at ${n} and deliver the opening coffee to C2`, moProto: "Prototype · speeds follow Shenzhen e-bike limits; points are illustrative", moFast: (x) => `×${x} fast-forward`, moReal: (min, m) => `At this pace the real ride takes about ${min} min (${m} m)`, moGas: "Go", moBrake: "Brake", moLeftK: "Left", moRightK: "Right",
 });
 
 // ---------- 路网工具（只读 G / adj，不改步行导航）----------
@@ -3401,45 +3405,27 @@ function buildBike() {
   return g;
 }
 
-// ---------- 引擎声：单缸四冲程，脉冲式合成 ----------
-// 每次点火排一个「排气噗」（几条衰减的低频共振 + 一小段燃烧噪声），按当前转速一个个排进时间线；6 个略有差别的噗轮流用。
-// 另有进气 / 机械嘶声（随转速变亮）和刹车摩擦声（车速越快越响）。earshot 听过：摩托相似 z 2.37，仍判为程式合成（p_real 0.05）。
-function makeEngine(ctx, out) {
-  const sr = ctx.sampleRate, N = Math.round(sr * 0.07), pops = [];
-  for (let v = 0; v < 6; v++) {
-    const b = ctx.createBuffer(1, N, sr), d = b.getChannelData(0); let lp = 0;
-    const f1 = 62 + Math.random() * 10, f2 = 128 + Math.random() * 20, f3 = 330 + Math.random() * 80;
-    for (let i = 0; i < N; i++) {
-      const tt = i / sr, n = Math.random() * 2 - 1; lp += (n - lp) * 0.25;
-      d[i] = Math.exp(-tt / 0.022) * Math.sin(2 * Math.PI * f1 * tt) + 0.55 * Math.exp(-tt / 0.016) * Math.sin(2 * Math.PI * f2 * tt + 0.6)
-           + 0.3 * Math.exp(-tt / 0.009) * Math.sin(2 * Math.PI * f3 * tt) + 0.9 * Math.exp(-tt / 0.006) * lp;
-    }
-    pops.push(b);
-  }
-  const shaper = ctx.createWaveShaper(); { const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) c[i] = Math.tanh(1.8 * (i / 511.5 - 1)); shaper.curve = c; }
-  const lpf = ctx.createBiquadFilter(); lpf.type = "lowpass"; lpf.Q.value = 0.8; lpf.frequency.value = 900;
-  const bodyEq = ctx.createBiquadFilter(); bodyEq.type = "peaking"; bodyEq.frequency.value = 110; bodyEq.Q.value = 1.2; bodyEq.gain.value = 4;
-  const bus = ctx.createGain(); bus.gain.value = 0.7; const master = ctx.createGain(); master.gain.value = 0;
-  bus.connect(shaper).connect(bodyEq).connect(lpf).connect(master).connect(out);
-  const nb = ctx.createBuffer(1, sr * 2, sr), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+// ---------- 电机声：电动自行车轮毂电机（pollux 2026-11-24 改车种，原燃油单缸引擎声停用）----------
+// 电机高频啸叫（两路振荡器，频率跟车速走）+ 轮胎滚动噪声（低通白噪，车越快越响）+ 刹车摩擦声。接口不变：set(转速, 油门) / brake(level)。
+function makeEngine(ctx, out) {   // v2（earshot：v1 纯正弦 881 Hz 被听成警笛）：啸叫压低到 90–380 Hz、锯齿波过低通带泛音、带轻微抖动，音量让给轮胎和路面
+  const sr = ctx.sampleRate, master = ctx.createGain(); master.gain.value = 0;
+  const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 90; hp.Q.value = 0.7; master.connect(hp).connect(out);   // 去掉棕噪声的次低频轰鸣
+  const whine = ctx.createOscillator(); whine.type = "sawtooth";
+  const wob = ctx.createOscillator(), wobG = ctx.createGain(); wob.frequency.value = 7.3; wobG.gain.value = 0; wob.connect(wobG).connect(whine.frequency); wob.start();   // 电机换相的轻微抖动
+  const wlp = ctx.createBiquadFilter(); wlp.type = "lowpass"; wlp.Q.value = 0.5; wlp.frequency.value = 900;
+  const wg = ctx.createGain(); wg.gain.value = 0; whine.connect(wlp).connect(wg).connect(master); whine.start();
+  const nb = ctx.createBuffer(1, sr * 2, sr), nd = nb.getChannelData(0); let br = 0; for (let i = 0; i < nd.length; i++) { br = br * 0.98 + (Math.random() * 2 - 1) * 0.2; nd[i] = br; }   // 偏粉 / 棕的噪声，像路面
   const loopNoise = (type, f, q) => { const s = ctx.createBufferSource(); s.buffer = nb; s.loop = true; const bp = ctx.createBiquadFilter(); bp.type = type; bp.frequency.value = f; bp.Q.value = q; const g = ctx.createGain(); g.gain.value = 0; s.connect(bp).connect(g).connect(master); s.start(); return { bp, g }; };
-  const hiss = loopNoise("bandpass", 1200, 1.2), brk = loopNoise("bandpass", 2600, 2.5);
-  let next = 0, k = 0;
+  const tyre = loopNoise("lowpass", 400, 0.7), hiss = loopNoise("bandpass", 1800, 0.8), brk = loopNoise("bandpass", 2600, 2.5);
   return {
     master,
-    set(r, l, at = ctx.currentTime) {   // r 转速，l 油门开度 0–1
-      lpf.frequency.setTargetAtTime(700 + l * 2200 + r * 0.15, at, 0.05); hiss.bp.frequency.setTargetAtTime(900 + r * 0.25, at, 0.05); hiss.g.gain.setTargetAtTime(0.012 + r / 8000 * 0.03, at, 0.1);
-      master.gain.setTargetAtTime(r > 50 ? 0.5 : 0, at, 0.08);
-      if (r < 200) { next = 0; return; }
-      if (next < at) next = at;
-      while (next < at + 0.12) {   // 每两圈点火一次：间隔 120 / rpm 秒，±6 % 抖动；高转收油偶尔失火
-        const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = pops[k++ % pops.length];
-        const miss = l < 0.1 && r > 2500 && Math.random() < 0.08;
-        g.gain.value = miss ? 0.15 : (0.45 + 0.55 * l) * (0.85 + Math.random() * 0.3);
-        src.playbackRate.value = 0.95 + r / 9000 * 0.35;
-        src.connect(g).connect(bus); src.start(next);
-        next += (120 / r) * (1 + (Math.random() - 0.5) * 0.12);
-      }
+    set(r, l, at = ctx.currentTime) {   // r：沿用原来的「转速」（1500 停车 → 约 6700 满速），这里只当车速比例用；l 油门开度 0–1
+      const v = Math.max(0, Math.min(1, (r - 1500) / 5200)), f = 90 + v * 290;
+      whine.frequency.setTargetAtTime(f, at, 0.1); wobG.gain.setTargetAtTime(f * 0.012, at, 0.1); wlp.frequency.setTargetAtTime(500 + v * 900, at, 0.1);
+      wg.gain.setTargetAtTime(v > 0.02 ? 0.012 + 0.025 * l * (0.4 + v) : 0, at, 0.12);
+      tyre.g.gain.setTargetAtTime(0.35 * v, at, 0.2); tyre.bp.frequency.setTargetAtTime(250 + v * 650, at, 0.15);
+      hiss.g.gain.setTargetAtTime(0.06 * v * v, at, 0.2);
+      master.gain.setTargetAtTime(0.4, at, 0.08);   // 约 -21 LUFS（v1 约 -25）
     },
     brake(level, at = ctx.currentTime) { brk.g.gain.setTargetAtTime(level * 0.09, at, level ? 0.04 : 0.08); brk.bp.frequency.setTargetAtTime(2200 + level * 900, at, 0.05); },
   };
@@ -3497,6 +3483,7 @@ body.riding #labels > *:not(#leaders):not(.loft):not(.c2):not(.c2flag):not(.road
 .mo-street small { display:block; font-size:13px; font-weight:600; color:var(--muted); }
 .mo-spd { left:16px; bottom:16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:8px 14px; min-width:104px; font-variant-numeric:tabular-nums; }
 .mo-spd b { font-size:30px; font-weight:750; line-height:1; } .mo-spd span { font-size:13px; color:var(--muted); margin-left:4px; }
+.mo-spd .fx { font-size:13px; color:var(--muted); margin-top:2px; }
 .mo-spd .bar { height:4px; background:var(--soft); border-radius:2px; margin-top:6px; overflow:hidden; } .mo-spd .bar i { display:block; height:100%; background:var(--brand); width:0; }
 .mo-keys { right:16px; bottom:16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:13px; max-width:calc(100vw - 180px); }
 .mo-keys small { display:block; color:var(--muted); font-size:13px; }
@@ -3520,7 +3507,7 @@ body.picking .mo-wide { display:none; }
 `;
 document.head.appendChild(css);
 const el = (cls, html = "") => { const d = document.createElement("div"); d.className = "mo " + cls; d.innerHTML = html; d.hidden = true; document.body.appendChild(d); return d; };
-const card = el("mo-card"), tr = el("mo-tr"), tip = el("mo-tip"), street = el("mo-street"), spd = el("mo-spd", '<b>0</b><span>km/h</span><div class="bar"><i></i></div>'), keys = el("mo-keys"), end = el("mo-end");
+const card = el("mo-card"), tr = el("mo-tr"), tip = el("mo-tip"), street = el("mo-street"), spd = el("mo-spd", '<b>0</b><span>km/h</span><div class="fx"></div><div class="bar"><i></i></div>'), keys = el("mo-keys"), end = el("mo-end");
 const padL = el("mo-pad l"), padR = el("mo-pad r");
 tip.setAttribute("role", "status"); street.setAttribute("aria-live", "polite"); end.setAttribute("role", "dialog");
 const UI = [card, tr, tip, street, spd, keys, padL, padR];
@@ -3684,7 +3671,7 @@ function finish() {
   ST.done = true; ST.doneAt = performance.now(); ST.v = 0; goalMk.visible = false; clearTrail(); arrowMk.visible = false;   // 送达：收掉终点圈和导航线，别挡住送达卡后面的画面
   const ms = ST.doneAt - ST.t0, walkM = Math.round(ST.routeLen), walkMin = Math.max(1, Math.round(walkM / 75));
   const pts = Math.max(50, Math.round(300 - ms / 1000 * 2)); ST.score += pts;
-  end.innerHTML = `<div class="t">${t("moDone")}</div><div class="sc">${t("moTime")} ${fmtT(ms)} · ${t("moScore")} <b>+${pts}</b></div><div class="w">${t("moWalk", walkM, walkMin)}</div><div class="bt"><button type="button" class="mo-btn" data-a="free">${t("moToFree")}</button><button type="button" class="mo-btn pri" data-a="again">${t("moAgain")}</button></div>`;
+  end.innerHTML = `<div class="t">${t("moDone")}</div><div class="sc">${t("moTime")} ${fmtT(ms)} · ${t("moScore")} <b>+${pts}</b></div><div class="w">${t("moReal", Math.max(1, Math.round(ms * TIME_X / 60000)), walkM)}</div><div class="w">${t("moWalk", walkM, walkMin)}</div><div class="bt"><button type="button" class="mo-btn" data-a="free">${t("moToFree")}</button><button type="button" class="mo-btn pri" data-a="again">${t("moAgain")}</button></div>`;
   end.hidden = false; renderCard(); end.querySelector("[data-a=again]").focus({ preventScroll: true });
 }
 
@@ -3698,7 +3685,7 @@ function step(dt) {
   ST.v = Math.max(0, ST.v);
   // 停稳后长按 ↓ 掉头
   if (brk && ST.v < 0.05) { ST.holdDown += dt; if (ST.holdDown > 0.6) { ST.holdDown = -10; const L = segLen(ST.a, ST.b); [ST.a, ST.b] = [ST.b, ST.a]; ST.s = L - ST.s; ST.intent = 0; trailAt = 0; } } else if (!brk) ST.holdDown = 0;
-  let move = ST.v * dt;
+  let move = ST.v * dt * TIME_X;   // 地图上按快进倍数走，ST.v 仍是真实车速
   for (let guard = 0; guard < 20 && move > 0; guard++) {
     const L = segLen(ST.a, ST.b);
     if (ST.s + move < L) { ST.s += move; break; }
@@ -3716,8 +3703,8 @@ function step(dt) {
   bike.position.set(ST.x, 0, ST.z); bike.rotation.y = -ST.h; bike.userData.body.rotation.x = ST.lean;
   for (const b of LOFTS) if (!ST.passed.has(b.name) && ringDist([ST.x, ST.z], b.ring) < 14) { ST.passed.add(b.name); if (ST.mode === "free") ST.score += 10; showTip(t("moPass", b.name), 1400); break; }
   if (kindOf(ST.a, ST.b) === 2 && performance.now() > tipT) showTip(t("moStairs"));
-  // 引擎：转速跟车速走（像踏板车的无级变速），油门再往上推一点
-  const crank = (performance.now() - crankT) / 1000;
+  // 电机：「转速」只当车速比例传给电机声（电动车没有点火过程）
+  const crank = 1;
   const target = crank < 0.35 ? 400 + crank * 7000 : 1500 + (ST.v / VMAX[0]) * 5200 + (gas ? 1400 : 0);
   ST.rpm += (target - ST.rpm) * Math.min(1, dt * (gas ? 5 : 3));
   if (eng && !ST.muted) { eng.set(ST.rpm, gas ? 1 : 0); eng.brake(brk && ST.v > 1.5 ? Math.min(1, ST.v / 10) : 0); }
@@ -3759,7 +3746,7 @@ cameraGuard = function () {
   const n = Math.max(1, Math.ceil(dt / 0.025)); for (let i = 0; i < n; i++) step(dt / n);
   updateTrail(now); updateCam(dt);
   if (now > tipT) tip.classList.remove("on"); if (now > streetT) street.classList.remove("on");
-  spd.querySelector("b").textContent = Math.round(ST.v * 3.6); spd.querySelector(".bar i").style.width = Math.min(100, ST.v / VMAX[0] * 100) + "%";
+  spd.querySelector("b").textContent = Math.round(ST.v * 3.6); { const fx = spd.querySelector(".fx"), s2 = t("moFast", TIME_X); if (fx.textContent !== s2) fx.textContent = s2; } spd.querySelector(".bar i").style.width = Math.min(100, ST.v / VMAX[0] * 100) + "%";
   if (now - cardAt > 250) { cardAt = now; renderCard(); }
   goalMk.rotation.y += dt;
 };

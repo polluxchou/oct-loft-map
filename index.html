@@ -3322,7 +3322,7 @@ window.__ready = true;
 // routeGroup / legGroup / lastRoute / panel / renderViews / select / cameraGuard / controls / camera / scene / MOBILE / I18N / t / tx。
 // 接法：只包一层 renderViews（放入口）、select（骑车时不开卡片）、cameraGuard（骑车时由本段接管相机）；不改这些函数本身，也不改步行导航逻辑。
 // 车：参考 N1s 的外形语言（侧面轮廓拉伸的一体车身、圆头灯、黑长座），自建低多边形模型，不用对方的模型、logo 或贴图。
-// 声音：原为燃油单缸引擎声；2026-11-24 车种改电动自行车（南山全区禁摩），换成电机啸叫 + 轮胎噪声，Web Audio 实时合成，不下载录音。
+// 声音：燃油单缸四冲程，Web Audio 实时合成（每次点火排一个「排气噗」，思路参考 Antonio-R1/engine-sound-generator，MIT，没有复制代码；不下载录音）。2026-11-24 试过电机声，pollux 要求改回这版。
 // 操作：只沿导航用的路网 G 走，到路口用 ← → 预选往哪拐；↑ 油门、↓ 刹车，停稳后长按 ↓ 掉头。桌面键盘，手机屏幕按钮（≥ 44 px）。
 {
 const SC = 3;                               // 车模放大倍数：真车约 1.8 m，地图上放大 3 倍才看得清
@@ -3405,27 +3405,45 @@ function buildBike() {
   return g;
 }
 
-// ---------- 电机声：电动自行车轮毂电机（pollux 2026-11-24 改车种，原燃油单缸引擎声停用）----------
-// 电机高频啸叫（两路振荡器，频率跟车速走）+ 轮胎滚动噪声（低通白噪，车越快越响）+ 刹车摩擦声。接口不变：set(转速, 油门) / brake(level)。
-function makeEngine(ctx, out) {   // v2（earshot：v1 纯正弦 881 Hz 被听成警笛）：啸叫压低到 90–380 Hz、锯齿波过低通带泛音、带轻微抖动，音量让给轮胎和路面
-  const sr = ctx.sampleRate, master = ctx.createGain(); master.gain.value = 0;
-  const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 90; hp.Q.value = 0.7; master.connect(hp).connect(out);   // 去掉棕噪声的次低频轰鸣
-  const whine = ctx.createOscillator(); whine.type = "sawtooth";
-  const wob = ctx.createOscillator(), wobG = ctx.createGain(); wob.frequency.value = 7.3; wobG.gain.value = 0; wob.connect(wobG).connect(whine.frequency); wob.start();   // 电机换相的轻微抖动
-  const wlp = ctx.createBiquadFilter(); wlp.type = "lowpass"; wlp.Q.value = 0.5; wlp.frequency.value = 900;
-  const wg = ctx.createGain(); wg.gain.value = 0; whine.connect(wlp).connect(wg).connect(master); whine.start();
-  const nb = ctx.createBuffer(1, sr * 2, sr), nd = nb.getChannelData(0); let br = 0; for (let i = 0; i < nd.length; i++) { br = br * 0.98 + (Math.random() * 2 - 1) * 0.2; nd[i] = br; }   // 偏粉 / 棕的噪声，像路面
+// ---------- 引擎声：单缸四冲程，脉冲式合成 ----------
+// 每次点火排一个「排气噗」（几条衰减的低频共振 + 一小段燃烧噪声），按当前转速一个个排进时间线；6 个略有差别的噗轮流用。
+// 另有进气 / 机械嘶声（随转速变亮）和刹车摩擦声（车速越快越响）。earshot 听过：摩托相似 z 2.37，仍判为程式合成（p_real 0.05）。
+function makeEngine(ctx, out) {
+  const sr = ctx.sampleRate, N = Math.round(sr * 0.07), pops = [];
+  for (let v = 0; v < 6; v++) {
+    const b = ctx.createBuffer(1, N, sr), d = b.getChannelData(0); let lp = 0;
+    const f1 = 62 + Math.random() * 10, f2 = 128 + Math.random() * 20, f3 = 330 + Math.random() * 80;
+    for (let i = 0; i < N; i++) {
+      const tt = i / sr, n = Math.random() * 2 - 1; lp += (n - lp) * 0.25;
+      d[i] = Math.exp(-tt / 0.022) * Math.sin(2 * Math.PI * f1 * tt) + 0.55 * Math.exp(-tt / 0.016) * Math.sin(2 * Math.PI * f2 * tt + 0.6)
+           + 0.3 * Math.exp(-tt / 0.009) * Math.sin(2 * Math.PI * f3 * tt) + 0.9 * Math.exp(-tt / 0.006) * lp;
+    }
+    pops.push(b);
+  }
+  const shaper = ctx.createWaveShaper(); { const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) c[i] = Math.tanh(1.8 * (i / 511.5 - 1)); shaper.curve = c; }
+  const lpf = ctx.createBiquadFilter(); lpf.type = "lowpass"; lpf.Q.value = 0.8; lpf.frequency.value = 900;
+  const bodyEq = ctx.createBiquadFilter(); bodyEq.type = "peaking"; bodyEq.frequency.value = 110; bodyEq.Q.value = 1.2; bodyEq.gain.value = 4;
+  const bus = ctx.createGain(); bus.gain.value = 0.7; const master = ctx.createGain(); master.gain.value = 0;
+  bus.connect(shaper).connect(bodyEq).connect(lpf).connect(master).connect(out);
+  const nb = ctx.createBuffer(1, sr * 2, sr), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
   const loopNoise = (type, f, q) => { const s = ctx.createBufferSource(); s.buffer = nb; s.loop = true; const bp = ctx.createBiquadFilter(); bp.type = type; bp.frequency.value = f; bp.Q.value = q; const g = ctx.createGain(); g.gain.value = 0; s.connect(bp).connect(g).connect(master); s.start(); return { bp, g }; };
-  const tyre = loopNoise("lowpass", 400, 0.7), hiss = loopNoise("bandpass", 1800, 0.8), brk = loopNoise("bandpass", 2600, 2.5);
+  const hiss = loopNoise("bandpass", 1200, 1.2), brk = loopNoise("bandpass", 2600, 2.5);
+  let next = 0, k = 0;
   return {
     master,
-    set(r, l, at = ctx.currentTime) {   // r：沿用原来的「转速」（1500 停车 → 约 6700 满速），这里只当车速比例用；l 油门开度 0–1
-      const v = Math.max(0, Math.min(1, (r - 1500) / 5200)), f = 90 + v * 290;
-      whine.frequency.setTargetAtTime(f, at, 0.1); wobG.gain.setTargetAtTime(f * 0.012, at, 0.1); wlp.frequency.setTargetAtTime(500 + v * 900, at, 0.1);
-      wg.gain.setTargetAtTime(v > 0.02 ? 0.012 + 0.025 * l * (0.4 + v) : 0, at, 0.12);
-      tyre.g.gain.setTargetAtTime(0.35 * v, at, 0.2); tyre.bp.frequency.setTargetAtTime(250 + v * 650, at, 0.15);
-      hiss.g.gain.setTargetAtTime(0.06 * v * v, at, 0.2);
-      master.gain.setTargetAtTime(0.4, at, 0.08);   // 约 -21 LUFS（v1 约 -25）
+    set(r, l, at = ctx.currentTime) {   // r 转速，l 油门开度 0–1
+      lpf.frequency.setTargetAtTime(700 + l * 2200 + r * 0.15, at, 0.05); hiss.bp.frequency.setTargetAtTime(900 + r * 0.25, at, 0.05); hiss.g.gain.setTargetAtTime(0.012 + r / 8000 * 0.03, at, 0.1);
+      master.gain.setTargetAtTime(r > 50 ? 0.5 : 0, at, 0.08);
+      if (r < 200) { next = 0; return; }
+      if (next < at) next = at;
+      while (next < at + 0.12) {   // 每两圈点火一次：间隔 120 / rpm 秒，±6 % 抖动；高转收油偶尔失火
+        const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = pops[k++ % pops.length];
+        const miss = l < 0.1 && r > 2500 && Math.random() < 0.08;
+        g.gain.value = miss ? 0.15 : (0.45 + 0.55 * l) * (0.85 + Math.random() * 0.3);
+        src.playbackRate.value = 0.95 + r / 9000 * 0.35;
+        src.connect(g).connect(bus); src.start(next);
+        next += (120 / r) * (1 + (Math.random() - 0.5) * 0.12);
+      }
     },
     brake(level, at = ctx.currentTime) { brk.g.gain.setTargetAtTime(level * 0.09, at, level ? 0.04 : 0.08); brk.bp.frequency.setTargetAtTime(2200 + level * 900, at, 0.05); },
   };
@@ -3703,8 +3721,8 @@ function step(dt) {
   bike.position.set(ST.x, 0, ST.z); bike.rotation.y = -ST.h; bike.userData.body.rotation.x = ST.lean;
   for (const b of LOFTS) if (!ST.passed.has(b.name) && ringDist([ST.x, ST.z], b.ring) < 14) { ST.passed.add(b.name); if (ST.mode === "free") ST.score += 10; showTip(t("moPass", b.name), 1400); break; }
   if (kindOf(ST.a, ST.b) === 2 && performance.now() > tipT) showTip(t("moStairs"));
-  // 电机：「转速」只当车速比例传给电机声（电动车没有点火过程）
-  const crank = 1;
+  // 引擎：转速跟车速走（像踏板车的无级变速），油门再往上推一点
+  const crank = (performance.now() - crankT) / 1000;
   const target = crank < 0.35 ? 400 + crank * 7000 : 1500 + (ST.v / VMAX[0]) * 5200 + (gas ? 1400 : 0);
   ST.rpm += (target - ST.rpm) * Math.min(1, dt * (gas ? 5 : 3));
   if (eng && !ST.muted) { eng.set(ST.rpm, gas ? 1 : 0); eng.brake(brk && ST.v > 1.5 ? Math.min(1, ST.v / 10) : 0); }

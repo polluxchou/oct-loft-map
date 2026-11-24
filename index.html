@@ -837,12 +837,12 @@ function buildC2Hall(THREE, b) {
     logo.renderOrder = 2; logo.name = "c2-logo"; g.add(logo);
     // 屏幕宽不到约 100 px 就淡出（再小读不出来，也免得压在「C2 主会场」标签下）；Brand Portal rules.json 建议 simple logo 最小 160 CSS px（recommendation），总览时达不到
     const ends = [new THREE.Vector3(-LW / 2, 0, 0), new THREE.Vector3(LW / 2, 0, 0), new THREE.Vector3(0, -LH / 2, 0), new THREE.Vector3(0, LH / 2, 0)], pv = new THREE.Vector3();
-    const LMIN = +new URLSearchParams(location.search).get("logoMin") || 100;   // ?logoMin=160 对照官方建议
+    const LMIN = +new URLSearchParams(location.search).get("logoMin") || 72;   // ?logoMin=160 对照官方建议；pollux 2026-11-24「俯视的视角看不到 C2 的活动 logo」：100 → 72，俯视 1x（桌面约 88 px、手机约 79 px）也显示，手机总览（约 59 px）仍淡出
     logo.onBeforeRender = (renderer, scene, camera) => {
       const el = renderer.domElement, w = el.clientWidth, h = el.clientHeight;
       const px = ends.map((e) => { pv.copy(e).applyMatrix4(logo.matrixWorld).project(camera); return [(pv.x + 1) * w / 2, (1 - pv.y) * h / 2]; });
       const wpx = Math.hypot(px[1][0] - px[0][0], px[1][1] - px[0][1]);
-      const op = Math.max(0, Math.min(1, (wpx - (LMIN - 8)) / 16));   // 约 LMIN px 起显示：pollux 2026-11-24 定 100（官方建议 160 px，总览会看不到）
+      const op = Math.max(0, Math.min(1, (wpx - (LMIN - 8)) / 16));   // 约 LMIN px 起显示：先定 100，后为俯视改 72（官方建议 160 px，总览会看不到）
       logo.material.opacity = op;
       const xs = px.map((p) => p[0]), ys = px.map((p) => p[1]);   // 测试用：logo 在屏幕上的大致范围（四条中线端点外接框，未计倾斜）
       window.__c2Logo = { wpx: Math.round(wpx), op, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(Math.round) };

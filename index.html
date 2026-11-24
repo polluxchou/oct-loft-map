@@ -3788,14 +3788,14 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   const WK_STAY = "#2b5d9b", WK_VISIT = "#b8621b";
   const WIKI_URL = "https://themucommunity.notion.site/muShenzhen-2026-Wiki-3f5548389af381549639e899a02d1ae0";
   Object.assign(I18N.zh, {
-    lay_stay: "住：Wiki 推荐住宿", lay_visit: "玩：Wiki 推荐参观", wkStay: "住宿", wkVisit: "参观", wkPartner: "muShenzhen 合作住宿", wkIn: "园区内", wkOut: "园区外",
+    lay_stay: "住：Wiki 推荐住宿", lay_visit: "玩：Wiki 推荐参观", wkStay: "住宿", wkVisit: "参观", wkPartner: "mushenzhen 合作住宿", wkIn: "园区内", wkOut: "园区外",
     wkSrc: "来源", wkSrcTx: "（2026-10-24 英文版）；位置取 OpenStreetMap，≈ 为估算", wkFrom: "距 C2 直线", wkHow: "怎么去 / 提示",
-    wkOsm: (n) => `OSM 楼名：${n}`, wkMapNote: "城市简图：OCT-LOFT 缩成一个点，看各地点在哪个方向、多远。点图上的地名切换。", wkMapAria: "深圳城市简图：OCT-LOFT 与 Wiki 推荐地点的相对位置", wkDisc: "参与者优惠", wkBook: "预订方式按 Wiki：自己联系酒店、说明是 muShenzhen 参与者、到店付款。价格和折扣以 Wiki 最新版为准。",
+    wkOsm: (n) => `OSM 楼名：${n}`, wkMapNote: "城市简图：OCT-LOFT 缩成一个点，看各地点在哪个方向、多远。点图上的地名切换。", wkMapAria: "深圳城市简图：OCT-LOFT 与 Wiki 推荐地点的相对位置", wkDisc: "参与者优惠", wkBook: "预订方式按 Wiki：自己联系酒店、说明是 mushenzhen 参与者、到店付款。价格和折扣以 Wiki 最新版为准。",
   });
   Object.assign(I18N.en, {
-    lay_stay: "Stay: Wiki partner hotels", lay_visit: "Visit: Wiki picks to explore", wkStay: "Stay", wkVisit: "Visit", wkPartner: "muShenzhen partner stay", wkIn: "In the park", wkOut: "Outside the park",
+    lay_stay: "Stay: Wiki partner hotels", lay_visit: "Visit: Wiki picks to explore", wkStay: "Stay", wkVisit: "Visit", wkPartner: "mushenzhen partner stay", wkIn: "In the park", wkOut: "Outside the park",
     wkSrc: "Source", wkSrcTx: " (English edition, 24 Oct 2026); locations from OpenStreetMap, ≈ = estimated", wkFrom: "straight-line from C2", wkHow: "Getting there / tips",
-    wkOsm: (n) => `OSM building name: ${n}`, wkMapNote: "City sketch: OCT-LOFT shrinks to one point, so you can see which way and how far each place is. Tap a name on the map to switch.", wkMapAria: "Shenzhen sketch map: OCT-LOFT and the Wiki picks", wkDisc: "Participant benefit", wkBook: "Per the Wiki: contact the hotel yourself, say you're a muShenzhen participant and pay at the hotel. Check the latest Wiki for prices and discounts.",
+    wkOsm: (n) => `OSM building name: ${n}`, wkMapNote: "City sketch: OCT-LOFT shrinks to one point, so you can see which way and how far each place is. Tap a name on the map to switch.", wkMapAria: "Shenzhen sketch map: OCT-LOFT and the Wiki picks", wkDisc: "Participant benefit", wkBook: "Per the Wiki: contact the hotel yourself, say you're a mushenzhen participant and pay at the hotel. Check the latest Wiki for prices and discounts.",
   });
   const O = D.origin, KX = Math.cos(O.lat * Math.PI / 180) * 111320;
   const XY = (la, lo) => [(lo - O.lon) * KX, -(la - O.lat) * 110950];
@@ -3806,13 +3806,13 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   // ---------- 1. 模型范围内的住宿：OSM 楼 + 粗模 ----------
   const HOTELS = [
     { id: 532810260, at: "in", zh: "嘉途酒店", en: "Jiatu Hotel", lb: { zh: "嘉途", en: "Jiatu" }, full: { zh: "深圳华侨城创意文化园嘉途酒店（B1 栋）", en: "Jiatu Hotel, OCT-LOFT (Building B1)" },
-      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, note: { zh: "携程地址：锦绣北街 2 号华侨城创意文化园 B1 栋；2025 年 1 月试业", en: "Ctrip address: Building B1, OCT-LOFT, 2 Jinxiu North St; soft-opened Jan 2025" } },
+      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, md: "按房型 8 至 8.5 折的房价优惠", note: { zh: "携程地址：锦绣北街 2 号华侨城创意文化园 B1 栋；2025 年 1 月试业", en: "Ctrip address: Building B1, OCT-LOFT, 2 Jinxiu North St; soft-opened Jan 2025" } },
     { id: 532810264, at: "in", zh: "YHA 侨城旅友青年旅舍", en: "YHA Qiaocheng Youth Hostel", lb: { zh: "YHA 青旅", en: "YHA" }, full: { zh: "侨城旅友国际青年旅舍（YHA，华侨城创意园店）", en: "YHA Qiaocheng Lvyou International Youth Hostel (OCT-LOFT)" },
-      disc: { zh: "适用房价 9 折", en: "10% off the applicable rate" }, note: { zh: "香山东街 7 号（OSM 标在恩平南街 3 栋）", en: "7 Xiangshan East St (OSM places it in Enping South St Bldg 3)" } },
+      disc: { zh: "适用房价 9 折", en: "10% off the applicable rate" }, md: "适用房价 9 折的优惠", note: { zh: "香山东街 7 号（OSM 标在恩平南街 3 栋）", en: "7 Xiangshan East St (OSM places it in Enping South St Bldg 3)" } },
     { id: 532810287, at: "in", zh: "玺程设计酒店", en: "Xicheng Hotel", lb: { zh: "玺程", en: "Xicheng" }, full: { zh: "玺程设计酒店（Wiki 写 Xicheng Hotel）", en: "Xicheng Design Hotel (listed as Xicheng Hotel in the Wiki)" },
-      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, note: { zh: "C2 东侧隔一条路", en: "Just east of C2, across the lane" } },
+      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, md: "按房型 8 至 8.5 折的房价优惠", note: { zh: "C2 东侧隔一条路", en: "Just east of C2, across the lane" } },
     { id: 532810324, at: "out", est: true, zh: "松岩酒店", en: "Songyan Hotel", lb: { zh: "松岩", en: "Songyan" }, full: { zh: "松岩酒店（深圳华侨城侨城东地铁站店）", en: "Songyan / Base Hotel (OCT Qiaocheng East Metro Station)" },
-      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, note: { zh: "≈ 位置按携程坐标换算，落在 OSM「华里酒店」楼（可能是改名前的名字）；离侨城东站约 800 m", en: "≈ Position converted from Ctrip coordinates; lands on the OSM building named 华里酒店 (likely its former name); about 800 m from Qiaocheng East Station" } },
+      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, md: "按房型 8 至 8.5 折的房价优惠", note: { zh: "≈ 位置按携程坐标换算，落在 OSM「华里酒店」楼（可能是改名前的名字）；离侨城东站约 800 m", en: "≈ Position converted from Ctrip coordinates; lands on the OSM building named 华里酒店 (likely its former name); about 800 m from Qiaocheng East Station" } },
   ];
   const hotelOf = new Map();
   const matStay = new THREE.MeshLambertMaterial({ color: 0xdbe6f3, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
@@ -3976,7 +3976,7 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
     const ph = PHOTO[g.g], en = lang === "en";
     const photoHtml = mob ? "" : `<figure class="wkc-photo ${g.cat}" style="left:${cBox[0].toFixed(0)}px;top:${cBox[1].toFixed(0)}px;width:${PW}px;height:${PH}px">`
       + (ph ? `<img src="${ph.src}" alt="${esc(tx(g.name))}" loading="lazy">` : `<div class="ph0">${en ? "Photo to come" : "照片待补"}</div>`)
-      + `<figcaption><b>${esc(tx(g.name))}</b>${ph?.page ? `<a href="${ph.page}" target="_blank" rel="noopener">© ${esc(ph.by)} · ${esc(ph.lic)}</a>` : ph?.note ? `<a>${esc(tx(ph.note))}</a>` : ""}</figcaption></figure>`;
+      + `<figcaption><b>${esc(tx(g.name))}</b>${ph?.page ? `<a href="${ph.page}" target="_blank" rel="noopener">© ${esc(ph.by)} · ${esc(ph.lic)}</a>` : ph?.note ? `<span>${esc(tx(ph.note))}</span>` : ""}</figcaption></figure>`;
     const out = [];
     const pinLab = (q) => {
       const on = q === g, far = q.items[0].km >= 15, p = pinP(q), px = on ? 15 : 13, kmS = (far ? "↗ " : "") + kmTx(q.items[0]), showKm = on || !mob;
@@ -4013,15 +4013,18 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   }
   function drawCard() {
     const g = curG, en = lang === "en", n = g.items[0];
-    const st = g.sts.length ? `<p class="wkc-st"><span class="k">${t("wkNear")}</span> ${g.sts.map((s) => `${esc(t("wkStn", en ? s.en : s.n))} ${s.l.map(badge).join("")}`).join(" · ")}</p>` : "";
-    const oct = `<p class="wkc-st"><span class="k">${t("wkOctSt")}</span> ${OCT_ST.map((s) => `${esc(t("wkStn", en ? s.en : s.n))} ${s.l.map(badge).join("")}`).join(" · ")}</p>`;
-    const ph = PHOTO[g.g], thumb = innerWidth <= 640 && ph ? `<figure class="wkc-thumb ${g.cat}"><img src="${ph.src}" alt=""><figcaption>${ph.page ? `© ${esc(ph.by)} · ${esc(ph.lic)}` : esc(tx(ph.note || ""))}</figcaption></figure>` : "";
-    ov.querySelector(".wkc-card").innerHTML = `<div class="wkc-head">${thumb}<div><div class="eyebrow wk-eb ${g.cat}">Wiki · ${t(g.cat === "stay" ? "wkStay" : "wkVisit")} · ${kmTx(n)} · ${DIRS[lang][n.dir]}</div><h2>${esc(tx(g.name))}</h2></div></div>`
-      + `<ul class="wkc-it">${g.items.map((it) => { const L = en ? it.en : it.zh; return `<li><b>${esc(L[0])}</b>${g.items.length > 1 ? ` <span class="k">${kmTx(it)}</span>` : ""}<br><span>${esc(L[1])}</span></li>`; }).join("")}</ul>`
-      + st + oct + `<p class="k wkc-src"><a href="${WIKI_URL}" target="_blank" rel="noopener">muShenzhen 2026 Wiki</a>${t("wkSrcTx")}${en ? "; base map: OSM, simplified" : "；底图：OSM，已简化"}</p>`;
+    const stn = (arr) => arr.map((x) => `<span>${esc(t("wkStn", en ? x.en : x.n))} ${x.l.map(badge).join("")}</span>`).join("");
+    const ph = PHOTO[g.g], mobC = innerWidth <= 640;
+    const thumb = mobC && ph ? `<figure class="wkc-thumb"><img src="${ph.src}" alt=""></figure>` : "";
+    const credit = ph ? (ph.page ? `<a href="${ph.page}" target="_blank" rel="noopener">© ${esc(ph.by)} · ${esc(ph.lic)}</a>` : esc(tx(ph.note || ""))) : "";
+    ov.querySelector(".wkc-card").innerHTML = `<div class="wkc-head">${thumb}<div><div class="eb">Wiki · ${t(g.cat === "stay" ? "wkStay" : "wkVisit")}</div><h2>${esc(tx(g.name))}</h2><p class="meta">${en ? "" : "距 C2 "}${kmTx(n)} · ${DIRS[lang][n.dir]}</p>${mobC && credit ? `<div class="wkc-cr">${ph.page ? (en ? "Photo " : "照片 ") : ""}${credit}</div>` : ""}</div></div>`
+      + `<section><h3>${en ? "What's there" : "是什么"}</h3><ul class="wkc-it">${g.items.map((it) => { const L = en ? it.en : it.zh; return `<li><b>${esc(L[0])}</b>${g.items.length > 1 ? ` <span class="k">${kmTx(it)}</span>` : ""}<span class="d">${esc(L[1])}</span></li>`; }).join("")}</ul></section>`
+      + (g.cat === "stay" ? `<section><h3>${en ? "Participant discount" : "参与者优惠"}</h3>${msgBlock("跳海 Living（南头古城）的房间", "房价 75 折的优惠")}</section>` : "")
+      + `<section><h3>${en ? "Getting there" : "怎么去"}</h3>${g.sts.length ? `<p class="wkc-st"><span class="k">${t("wkNear")}</span>${stn(g.sts)}</p>` : ""}<p class="wkc-st"><span class="k">${t("wkOctSt")}</span>${stn(OCT_ST)}</p></section>`
+      + `<section><p class="src"><a href="${WIKI_URL}" target="_blank" rel="noopener">muShenzhen 2026 Wiki</a>${t("wkSrcTx")}${en ? "; base map: OSM, simplified" : "；底图：OSM，已简化"}</p></section>`;
   }
   function drawTop() {
-    ov.querySelector(".wkc-back").innerHTML = `<span aria-hidden="true">←</span> ${t("wkBack")}`;
+    ov.querySelector(".wkc-back").innerHTML = `<span aria-hidden="true">‹</span> ${t("wkBack")}`;
     ov.querySelector(".wkc-h b").textContent = t("wkCityT"); ov.querySelector(".wkc-h small").textContent = t("wkCitySub");
     const list = [...FAR].sort((a, b) => (a.cat === b.cat ? a.items[0].km - b.items[0].km : a.cat === "visit" ? -1 : 1));
     const ch = ov.querySelector(".wkc-chips");
@@ -4033,17 +4036,35 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
     curG = g; const first = ov.hidden; ov.hidden = false; document.body.classList.add("wkcity");
     if (first) { if (panel.style.display !== "none") select(null); }
     drawTop(); drawCard(); requestAnimationFrame(drawMap);
-    if (first) ov.querySelector(".wkc-back").focus({ preventScroll: true });
   }
   function closeCity() { ov.hidden = true; curG = null; document.body.classList.remove("wkcity"); }
   ov.querySelector(".wkc-back").onclick = closeCity;
   addEventListener("keydown", (e) => { if (e.key === "Escape" && !ov.hidden) closeCity(); });
   addEventListener("resize", () => { if (!ov.hidden) drawMap(); });
   document.getElementById("langBtn").addEventListener("click", () => { if (!ov.hidden) { drawTop(); drawCard(); drawMap(); } });
+  // ---- 发给酒店的开场白（pollux 2026-11-24：「在住宿优惠的信息里面mock一段文字，站在用户的角度给酒店介绍自己是 mushenzhen 的参与人，希望享受对应的入住优惠，然后给一个一键复制的功能」）
+  // 酒店前台多半看中文，所以话术固定用中文；英文界面另给一行英文说明。日期、姓名留空让用户自己填（示意，不收集任何资料）
+  const wkMsg = (hotel, disc) => `您好！我是 mushenzhen 2026（11 月 29 日至 12 月 18 日，华侨城创意文化园）的参与者，想预订${hotel}，入住日期：____ 至 ____，共 __ 人。看到活动 Wiki 上写参与者可享受${disc}，请问我可以按这个优惠预订吗？需要提供什么证明，我可以发参与者报名确认截图。谢谢！`;
+  const msgBlock = (hotel, disc) => {
+    const m = wkMsg(hotel, disc), en = lang === "en";
+    return `<div class="wk-msg"><div class="wk-msg-h">${en ? "Message to the hotel (sample, in Chinese — fill in dates and number of guests)" : "发给酒店的开场白（示意，日期和人数自己填）"}</div>`
+      + `<p class="wk-msg-t">${esc(m)}</p><button type="button" class="wk-copy" data-wkcopy="${esc(m)}">${en ? "Copy message" : "一键复制"}</button></div>`;
+  };
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest?.("[data-wkcopy]"); if (!b) return;
+    const txt = b.dataset.wkcopy, done = lang === "en" ? "Copied" : "已复制", orig = b.textContent;
+    let ok = false;
+    try { await navigator.clipboard.writeText(txt); ok = true; } catch {
+      const ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;left:-9999px"; document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand("copy"); } catch {} ta.remove();
+    }
+    b.textContent = ok ? done : (lang === "en" ? "Copy failed — select the text" : "复制失败，请长按文字手动复制"); b.classList.toggle("ok", ok);
+    setTimeout(() => { b.textContent = orig; b.classList.remove("ok"); }, 1800);
+  });
   function hotelSec(H) {
-    return `<section class="wk-sec"><h3>${t("wkPartner")}</h3><p><b>${esc(tx(H.full))}</b></p>`
+    return `<section class="wk-sec"><h3>${t("wkPartner")}<span class="tag">${t("wkStay")}</span></h3><p><b>${esc(tx(H.full))}</b></p>`
       + `<p>${t("wkDisc")}：${esc(tx(H.disc))}</p><p class="k">${esc(tx(H.note))}${H.osmName && H.osmName !== H.zh ? " · " + esc(t("wkOsm", H.osmName)) : ""}</p>`
-      + `<p class="k">${t("wkBook")} <a href="${WIKI_URL}" target="_blank" rel="noopener">Wiki</a></p></section>`;
+      + `<p class="k">${t("wkBook")} <a class="tlink" href="${WIKI_URL}" target="_blank" rel="noopener">Wiki</a></p>${msgBlock(H.full.zh.replace(/（Wiki 写.*?）/, ""), H.md || H.disc.zh)}</section>`;
   }
 
   // ---------- 3. 接进 select：酒店楼加一节；方位标开自己的卡 ----------
@@ -4080,17 +4101,24 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
     stay: `<path d="M3 19V7M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11.5" r="1.8"/>`,   // 床
     visit: `<path d="M5 21V4"/><path d="M5 5h12l-2.5 3.5L17 12H5"/>`,   // 小旗
   };
+  // 「住」「玩」互斥（pollux 2026-11-24：「住宿和玩的 tab 做一个互斥吧，不能同时选中」）：开一个就关另一个；两个都可以关
+  const wkBtn = {};
+  function setWk(cat, on) {
+    wkBtn[cat]?.setAttribute("aria-pressed", String(on));
+    if (cat === "stay") setStay(on); else WK_ON.visit = on;
+  }
   for (const cat of ["stay", "visit"]) {
-    const btn = document.createElement("button"), col = cat === "stay" ? WK_STAY : WK_VISIT;
+    const btn = document.createElement("button"), col = cat === "stay" ? WK_STAY : WK_VISIT; wkBtn[cat] = btn;
     btn.type = "button"; btn.setAttribute("aria-pressed", String(WK_ON[cat])); btn.className = "seg icon"; btn.dataset.k = cat === "stay" ? "lay_stay" : "lay_visit";
     btn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${ICON_WK[cat]}</svg>`;
     btn.title = t(btn.dataset.k); btn.setAttribute("aria-label", t(btn.dataset.k));
     btn.onclick = () => {
-      const on = !WK_ON[cat]; btn.setAttribute("aria-pressed", String(on));
+      const on = !WK_ON[cat], other = cat === "stay" ? "visit" : "stay";
+      if (on && WK_ON[other]) setWk(other, false);
+      setWk(cat, on);
       if (cat === "stay") {
-        setStay(on);
         if (on) { const pts = []; for (const H of HOTELS) if (H.m) for (const [x, z] of H.m.userData.b.ring) pts.push(new THREE.Vector3(x, 0, z), new THREE.Vector3(x, H.m.userData.b.h, z)); if (pts.length) { const iso = isoLocked; goTo({ ...frame(pts, iso ? lockDir() : curDir(), iso ? ISO_FOV : baseFov, { rect: safeRect({ withPanel: false }), pad: 40 }), iso }, 600); } }   // 等距下保持等距
-      } else WK_ON.visit = on;
+      }
     };
     legend.appendChild(btn);
   }
@@ -4145,8 +4173,7 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   .wkm.stay { color:${WK_STAY}; border-color:${WK_STAY}; }
   .wkm.visit { color:${WK_VISIT}; border-color:${WK_VISIT}; }
   .wkm .ct { font-size:11px; font-weight:700; }
-  .eyebrow.wk-eb.stay { color:${WK_STAY}; } .eyebrow.wk-eb.visit { color:${WK_VISIT}; }
-  .wk-sec { border-left:3px solid ${WK_STAY}; padding-left:10px; }
+  /* 眉题按 UI規範：12px muted，不用类别色 */
   body.wk-stay .lb.loft:not(.c2):not(.sel) { opacity:.5; font-size:11px; font-weight:600; }
   body.emph.wk-stay .lb.loft:not(.c2):not(.sel) { background:#efe3da; color:var(--brand); padding:0 3px; }
   body.wk-stay #leaders { opacity:.35; }
@@ -4154,15 +4181,6 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   #wkCity { position:fixed; inset:0; z-index:60; background:var(--canvas); display:grid; grid-template-rows:auto auto 1fr; font:inherit; }
   #wkCity[hidden] { display:none; }
   body.wkcity #labels, body.wkcity .wkm { visibility:hidden; }
-  .wkc-top { display:flex; align-items:center; gap:16px; padding:12px 16px 6px; }
-  .wkc-back { min-height:44px; padding:0 14px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; font-size:14px; font-weight:650; cursor:pointer; white-space:nowrap; }
-  .wkc-back:focus-visible, .wkc-chip:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
-  .wkc-h { display:flex; flex-direction:column; min-width:0; } .wkc-h b { font-size:18px; } .wkc-h small { color:var(--muted); font-size:13px; }
-  .wkc-chips { display:flex; gap:8px; padding:6px 16px 10px; overflow-x:auto; scrollbar-width:none; }
-  .wkc-chip { flex:none; display:flex; align-items:center; gap:6px; min-height:40px; padding:0 12px; border:1px solid var(--line); border-radius:20px; background:var(--surface); color:var(--ink); font:inherit; font-size:14px; font-weight:600; cursor:pointer; }
-  .wkc-chip i { width:9px; height:9px; border-radius:50%; } .wkc-chip.visit i { background:${WK_VISIT}; } .wkc-chip.stay i { background:${WK_STAY}; }
-  .wkc-chip span { color:var(--muted); font-weight:500; font-size:12px; font-variant-numeric:tabular-nums; }
-  .wkc-chip[aria-selected="true"] { background:var(--accent); border-color:var(--brand); }
   .wkc-map { position:relative; min-height:0; } .wkc-map svg { position:absolute; inset:0; width:100%; height:100%; }
   .wkc-map .sea { fill:#e6ecef; } .wkc-map .d { fill:#f7f5f2; stroke:#ddd6cf; fill-rule:evenodd; } .wkc-map .dn { fill:#c4bcb5; text-anchor:middle; dominant-baseline:middle; letter-spacing:.1em; }
   .wkc-map .ax { fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; } .wkc-map .ax2 { fill:none; stroke:#cfc6bd; stroke-linecap:round; stroke-linejoin:round; }
@@ -4178,23 +4196,46 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   .wkc-map .pin.visit path { fill:${WK_VISIT}; } .wkc-map .pin.stay path { fill:${WK_STAY}; } 
   .wkc-map .pin.cur path { stroke:var(--ink); stroke-width:1.5px; } .wkc-map .pin .km { fill:var(--muted); font-weight:500; }
   .wkc-map .nb circle { fill:#fff; stroke:var(--line); } .wkc-map .nb path { fill:var(--brand); } .wkc-map .nb text { fill:var(--muted); } .wkc-map .nb g text { font-size:11px; text-anchor:middle; } .wkc-map .nb line { stroke:var(--muted); }
-  .wkc-card { position:fixed; left:16px; bottom:16px; width:340px; max-height:calc(100vh - 220px); overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:0 4px 18px rgba(32,31,28,.12); }
-  .wkc-card h2 { margin:2px 0 8px; font-size:22px; } .wkc-card p { margin:6px 0; font-size:14px; }
-  .wkc-it { list-style:none; margin:0 0 8px; padding:0; font-size:14px; line-height:1.45; } .wkc-it li + li { margin-top:6px; } .wkc-it span { color:var(--muted); }
-  .wkc-st .k { color:var(--muted); font-size:12px; margin-right:4px; } .wkc-src { font-size:12px; }
   .wkc-map .pk { stroke:var(--ink); } .wkc-map .halo { fill:none; stroke-width:3px; } .wkc-map .halo.visit { stroke:${WK_VISIT}; } .wkc-map .halo.stay { stroke:${WK_STAY}; }
-  .wkc-photo { position:absolute; margin:0; background:var(--surface); border:3px solid ${WK_VISIT}; border-radius:8px; overflow:hidden; box-shadow:0 6px 20px rgba(32,31,28,.22); display:flex; flex-direction:column; z-index:1; }
-  .wkc-photo.stay { border-color:${WK_STAY}; }
-  .wkc-photo img { flex:1; min-height:0; width:100%; object-fit:cover; display:block; }
-  .wkc-photo .ph0 { flex:1; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; background:repeating-linear-gradient(45deg,#f2eee9 0 8px,#ebe5df 8px 16px); }
-  .wkc-photo figcaption { padding:4px 8px 5px; font-size:13px; line-height:1.25; display:flex; flex-direction:column; }
-  .wkc-photo figcaption a { color:var(--muted); font-size:10px; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   @media (prefers-reduced-motion: reduce) { .wkc-map .halo { display:none; } }
-  .wkc-head { display:flex; gap:12px; align-items:flex-start; } .wkc-head > div { min-width:0; }
-  .wkc-thumb { flex:none; width:112px; margin:0; } .wkc-thumb img { width:112px; height:84px; object-fit:cover; border-radius:6px; border:2px solid ${WK_VISIT}; display:block; } .wkc-thumb.stay img { border-color:${WK_STAY}; }
-  .wkc-thumb figcaption { font-size:9px; color:var(--muted); line-height:1.2; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* ---- 按 UI規範.md（mushenzhen-m2）：白底 + 1px 细线 + 10px 圆角，不用投影；分段上方细线；文字动作带下划线；二级切换 = 文字 + 深棕底线 ---- */
+  #pc section.wk-sec .tag { display:inline-block; background:var(--tag); border-radius:4px; font-size:12px; padding:1px 6px; margin-left:6px; vertical-align:2px; font-weight:500; }
+  .wkc-top { display:grid; grid-template-columns:minmax(76px,auto) 1fr minmax(76px,auto); align-items:center; min-height:56px; padding:0 8px; border-bottom:1px solid var(--line); background:var(--surface); }
+  .wkc-back { min-height:44px; padding:0 8px; border:none; background:none; color:var(--ink); font:inherit; font-size:15px; cursor:pointer; white-space:nowrap; justify-self:start; }
+  .wkc-back:focus-visible, .wkc-chip:focus-visible, .wkc-card a:focus-visible, .wkc-photo a:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+  .wkc-h { display:flex; flex-direction:column; align-items:center; text-align:center; min-width:0; } .wkc-h b { font-size:16px; font-weight:650; } .wkc-h small { color:var(--muted); font-size:12px; }
+  .wkc-chips { display:flex; gap:20px; padding:0 16px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--line); background:var(--surface); }
+  .wkc-chip { flex:none; display:flex; align-items:center; gap:6px; min-height:44px; padding:0; border:none; border-bottom:2px solid transparent; background:none; color:var(--muted); font:inherit; font-size:14px; cursor:pointer; }
+  .wkc-chip i { width:7px; height:7px; border-radius:50%; } .wkc-chip.visit i { background:${WK_VISIT}; } .wkc-chip.stay i { background:${WK_STAY}; }
+  .wkc-chip span { font-size:12px; font-variant-numeric:tabular-nums; }
+  .wkc-chip[aria-selected="true"] { color:var(--ink); font-weight:650; border-bottom-color:var(--brand); }
+  .wkc-card { position:fixed; left:16px; bottom:16px; width:340px; max-height:calc(100vh - 160px); overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px 18px 18px; }
+  .wkc-card .eb { font-size:12px; color:var(--muted); }
+  .wkc-card h2 { margin:4px 0 4px; font-size:25px; line-height:1.25; font-weight:650; }
+  .wkc-card .meta { margin:0; font-size:14px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .wkc-card section { border-top:1px solid var(--line); margin-top:16px; padding-top:14px; }
+  .wkc-card section h3 { margin:0 0 10px; font-size:15px; font-weight:650; }
+  .wkc-card p { margin:0; font-size:15px; line-height:1.65; }
+  .wkc-it { list-style:none; margin:0; padding:0; font-size:15px; line-height:1.65; } .wkc-it li + li { margin-top:8px; } .wkc-it .k, .wkc-it span.d { color:var(--muted); font-size:13px; } .wkc-it span.d { display:block; line-height:1.5; }
+  .wkc-st { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin:0 0 6px !important; font-size:14px !important; } .wkc-st .k { color:var(--muted); font-size:13px; width:100%; }
+  .wkc-card .src { font-size:13px; color:var(--muted); line-height:1.5; }
+  .wkc-card a, .wkc-photo a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+  .wkc-photo { position:absolute; margin:0; background:var(--surface); border:1px solid var(--line); border-radius:10px; overflow:hidden; display:flex; flex-direction:column; z-index:1; }
+  .wkc-photo img { flex:1; min-height:0; width:100%; object-fit:cover; display:block; }
+  .wkc-photo .ph0 { flex:1; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; background:var(--soft); }
+  .wkc-photo figcaption { padding:6px 10px 8px; font-size:15px; font-weight:650; line-height:1.3; display:flex; flex-direction:column; border-top:1px solid var(--line); }
+  .wkc-photo figcaption a, .wkc-photo figcaption span { color:var(--muted); font-size:12px; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .wkc-head { display:flex; gap:14px; align-items:flex-start; } .wkc-head > div { min-width:0; }
+  #pc a.tlink { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+  .wk-msg { margin-top:12px; background:var(--soft); border-radius:10px; padding:12px 14px; }
+  .wk-msg-h { font-size:12px; color:var(--muted); margin-bottom:6px; }
+  .wk-msg-t { margin:0 0 10px !important; font-size:14px !important; line-height:1.6 !important; color:var(--ink); user-select:text; }
+  .wk-copy { min-height:44px; padding:0 16px; border:1px solid #b9b1aa; border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
+  .wk-copy.ok { border-color:#829700; } .wk-copy:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+  .wkc-thumb { flex:none; width:72px; margin:0; } .wkc-thumb img { width:72px; height:72px; object-fit:cover; border-radius:10px; display:block; }
+  .wkc-cr { font-size:12px; color:var(--muted); margin-top:6px; }
+  @media (max-width:640px) { .wkc-h small { display:none; } .wkc-chips { padding:0 12px; gap:18px; } .wkc-card { left:8px; right:8px; bottom:8px; width:auto; max-height:40vh; padding:14px 16px 16px; } .wkc-card h2 { font-size:22px; } }
   .wk-ln { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; border-radius:4px; color:#fff; font-size:12px; font-weight:700; vertical-align:1px; }
-  @media (max-width:640px) { .wkc-top { padding:10px 12px 4px; gap:10px; } .wkc-h small { display:none; } .wkc-chips { padding:4px 12px 8px; } .wkc-card { left:8px; right:8px; bottom:8px; width:auto; max-height:38vh; } }
   .wk-c { font-size:11px; font-weight:650; margin-left:4px; } .wk-c.stay { color:${WK_STAY}; } .wk-c.visit { color:${WK_VISIT}; }`;
   document.head.appendChild(st);
   const tmpW = new THREE.Vector3();

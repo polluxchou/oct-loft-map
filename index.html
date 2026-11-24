@@ -2389,6 +2389,8 @@ window.__ready = true;
   ` }));
 
   const tz = (o) => (o && typeof o === "object" ? o[lang] ?? o.zh : o);
+  // 打车和火车站 / 机场 / 口岸并列，排第一个 tab（pollux 2026-11-24：「打车应该是和火车、飞机、口岸并列」）；没有路线卡，tab 里放说给司机听的话和播放键
+  if (!TR.groups.some((g) => g.id === "taxi")) TR.groups.unshift({ id: "taxi", zh: "打车（从哪里都行）", en: "Taxi (from anywhere)" });
   const exitB = D.exits.find((e) => e.station === TR.arrive.station && e.ref === TR.arrive.exit);
   // 出口到 C2 的步行距离用页面自己的路网算，和「在 3D 地图上看」画出来的路线一致
   const walk = (() => { const p = exitB.p, s = nearestNode(p), r = s >= 0 ? dijkstra(s) : null; if (!r) return { m: 0, min: 0 }; const n0 = G.nodes[r.path[0]]; const m = r.len + Math.hypot(p[0] - n0[0], p[1] - n0[1]); return { m: Math.round(m / 10) * 10, min: Math.max(1, Math.round(m / 75)) }; })();
@@ -2401,6 +2403,7 @@ window.__ready = true;
   const GICON = {
     air: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M10.5 3.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5V9l7 4v2l-7-2v5l2 1.5V21l-3.5-1L8.5 21v-1.5l2-1.5v-5l-7 2v-2l7-4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
     rail: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="6" y="3" width="12" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 10h12M9 14h.01M15 14h.01M8.5 17 6.5 21M15.5 17l2 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    taxi: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M4 11h16v5H4zM6.5 16v2.5M17.5 16v2.5M10 3.5h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="7.5" cy="13.5" r="1" fill="currentColor"/><circle cx="16.5" cy="13.5" r="1" fill="currentColor"/></svg>',
     port: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12M7 21v-7h10v7M3 21h18M12 14v7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
   };
   const hubCard = (h) => `<button type="button" class="hc" data-hub="${h.id}"><span class="nm">${esc(tz(h))}</span><span class="tm">${t("trTotal", total(h))}<small> · ${t("trFare", h.fare)}</small></span><span class="chain">${h.legs.map(([l]) => ln(l)).join("<span>›</span>")}<span>›</span>${walkIcon}</span></button>`;
@@ -2409,25 +2412,28 @@ window.__ready = true;
   const TAXI_SAY = "师傅您好，我去南山区华侨城创意文化园北区，地址是锦绣北街 2 号。麻烦停在侨香路南边、靠近园区北区的路边，我要去园区里的 C2 展厅。谢谢！";
   // 女声 / 男声两版（pollux：「给你一个女生版，一个男生版」）：女 zh-CN-XiaoxiaoNeural、男 zh-CN-YunxiNeural，都是 −8%
   const TAXI_AU = { f: new Audio("audio/taxi-c2-f.mp3"), m: new Audio("audio/taxi-c2-m.mp3") };
-  for (const a of Object.values(TAXI_AU)) a.preload = "none";
-  const stopTaxi = () => { for (const a of Object.values(TAXI_AU)) { a.pause(); a.currentTime = 0; } };
+  for (const a of Object.values(TAXI_AU)) a.preload = "metadata";
+  // 归零要容错：iOS Safari / 微信内置浏览器在音频还没载入时设 currentTime 会抛错，之前整段点击处理就停在这里、没走到 play()
+  const stopTaxi = () => { for (const a of Object.values(TAXI_AU)) { try { a.pause(); } catch {} try { if (a.readyState) a.currentTime = 0; } catch {} } try { speechSynthesis.cancel(); } catch {} };
+  // 音频播不出来（文件载不到、被拦）时，退回用手机自带的中文朗读
+  const speakTaxi = (v) => { try { const u = new SpeechSynthesisUtterance(TAXI_SAY.replace("C2", "C 二")); u.lang = "zh-CN"; u.rate = 0.9; const vs = speechSynthesis.getVoices().filter((x) => /zh[-_]CN/i.test(x.lang)); const pick = vs.find((x) => (v === "m" ? /male|yun|男|li-mu/i : /female|xiao|女|ting|mei/i).test(x.name)) || vs[0]; if (pick) u.voice = pick; u.onend = resetTaxiBtns; speechSynthesis.speak(u); return true; } catch { return false; } };
   const PLAY_ICO = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>', STOP_ICO = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3.5" y="3" width="3" height="10" fill="currentColor"/><rect x="9.5" y="3" width="3" height="10" fill="currentColor"/></svg>';
   const taxiBtn = (on, v) => `${on ? STOP_ICO : PLAY_ICO}<span>${lang === "en" ? (on ? "Stop" : v === "f" ? "Female voice" : "Male voice") : (on ? "停止" : v === "f" ? "女声播放" : "男声播放")}</span>`;
   const resetTaxiBtns = () => pc.querySelectorAll("[data-taxi]").forEach((b) => { b.innerHTML = taxiBtn(false, b.dataset.taxi); b.setAttribute("aria-pressed", "false"); });
   for (const a of Object.values(TAXI_AU)) a.addEventListener("ended", resetTaxiBtns);
-  const taxiHtml = (km) => `<section class="taxi"><h3>${lang === "en" ? "Taxi" : "打车"}<span class="k">${lang === "en" ? "easiest" : "最省事"}${km ? ` · ${lang === "en" ? "about" : "直线约"} ${km} km` : ""}</span></h3>`
+  const taxiHtml = (km) => `<section class="taxi"><h3>${lang === "en" ? "Say this to the driver" : "说给司机听"}<span class="k">${lang === "en" ? "easiest from anywhere" : "从哪里来都最省事"}${km ? ` · ${lang === "en" ? "about" : "直线约"} ${km} km` : ""}</span></h3>`
     + `<p class="say" lang="zh-CN">“${TAXI_SAY}”</p>`
     + (lang === "en" ? `<p class="k">Show or play this to the driver (in Chinese). It asks for the OCT-LOFT North Zone, 2 Jinxiu North St, dropping off on the south side of Qiaoxiang Rd near Hall C2.</p>` : "")
     + `<div class="plays"><button type="button" class="play" data-taxi="f" aria-pressed="false">${taxiBtn(false, "f")}</button><button type="button" class="play" data-taxi="m" aria-pressed="false">${taxiBtn(false, "m")}</button></div></section>`;
   function listHtml() {
     const tab = (g) => `<button type="button" role="tab" class="tab${g.id === trGroup ? " on" : ""}" aria-selected="${g.id === trGroup}" data-grp="${g.id}" title="${esc(tz(g))}">${GICON[g.id].replace(/width="22" height="22"/, 'width="18" height="18"')}<span>${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}</span></button>`;   // tab 上只写短名，括号里的说明放 title
-    return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2>${taxiHtml()}<div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
-      + `<section><div class="grid" role="tabpanel">${TR.hubs.filter((h) => h.g === trGroup).map(hubCard).join("")}</div><p class="note">${t("trFoot")}</p></section>`;
+    return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2><div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
+      + (trGroup === "taxi" ? `<div role="tabpanel">${taxiHtml()}</div>` : `<section><div class="grid" role="tabpanel">${TR.hubs.filter((h) => h.g === trGroup).map(hubCard).join("")}</div><p class="note">${t("trFoot")}</p></section>`);
   }
   function hubHtml(h) {
     const node = (nm, sub, end) => `<div class="nd${end ? " dest" : ""}"><div class="rail"><div class="dot${end ? " end" : ""}"></div></div><div class="tx"><div class="nm">${nm}</div>${sub ? `<div class="k">${sub}</div>` : ""}</div></div>`;
     const leg = (inner, c, w) => `<div class="nd leg${w ? " walk" : ""}" style="--c:${c || "#b9b1aa"}"><div class="rail"></div><div class="tx">${inner}</div></div>`;
-    let s = `<button type="button" class="backb" data-hub="list">${t("trBack")}</button><div class="eyebrow">${t("trEyebrow")}</div><h2>${esc(tz(h))}</h2>${taxiHtml(h.km)}<section>`
+    let s = `<button type="button" class="backb" data-hub="list">${t("trBack")}</button><div class="eyebrow">${t("trEyebrow")}</div><h2>${esc(tz(h))}</h2><section>`
       + `<div class="sum"><span class="big">${t("trTotal", total(h))}</span><span class="k">${t("trFare", h.fare)} · ${t("trSub", h.min, walk.min)}</span>${h.verified ? "" : `<span class="tag">${t("trUnv")}</span>`}</div><div class="it">`;
     s += node(esc(tz(h)), esc(tz(h.from)));
     h.legs.forEach(([l, a, , d, n], i) => {
@@ -2449,9 +2455,13 @@ window.__ready = true;
     pc.querySelectorAll("[data-grp]").forEach((b) => (b.onclick = () => { trGroup = b.dataset.grp; trRender("list"); document.dispatchEvent(new Event("tr:group")); pc.querySelector(`[data-grp="${trGroup}"]`)?.focus({ preventScroll: true }); }));
     pc.querySelector("[data-go]")?.addEventListener("click", () => { trView = null; setMode(); routeFrom(exitB.p); });
     pc.querySelectorAll("[data-taxi]").forEach((b) => (b.onclick = () => {
-      const v = b.dataset.taxi, a = TAXI_AU[v], on = !a.paused;
+      const v = b.dataset.taxi, a = TAXI_AU[v], on = b.getAttribute("aria-pressed") === "true";   // 按按钮状态判断，朗读兜底时也能停
       stopTaxi(); resetTaxiBtns();   // 同一时间只放一版
-      if (!on) { a.play().catch(() => {}); b.innerHTML = taxiBtn(true, v); b.setAttribute("aria-pressed", "true"); }
+      if (!on) {
+        b.innerHTML = taxiBtn(true, v); b.setAttribute("aria-pressed", "true");
+        let p; try { p = a.play(); } catch { p = Promise.reject(); }
+        Promise.resolve(p).catch(() => { if (!speakTaxi(v)) resetTaxiBtns(); });
+      }
     }));
     stopTaxi();   // 换页就停
   }
@@ -2502,7 +2512,7 @@ window.__ready = true;
     function drawLayBtn() { document.getElementById("pkLayT").textContent = t("layersT"); const ks = LEG.slice(1).map(([, tk]) => tk); document.getElementById("pkLayN").textContent = `${ks.filter(on).length}/${ks.length}`; }
     const cnt = (g) => TR.hubs.filter((h) => h.g === g.id).length;
     function drawTr() {
-      trMenu.innerHTML = `<div class="hd">${pkT[lang].hdT}</div>` + TR.groups.map((g) => `<button type="button" class="row" role="menuitem" data-g="${g.id}"${trView && trGroup === g.id ? ' aria-current="true"' : ""}><span class="gi">${GICON[g.id]}</span><span class="nm">${esc(tz(g))}<small>${pkT[lang].n(cnt(g))}</small></span><span class="go" aria-hidden="true">›</span></button>`).join("");
+      trMenu.innerHTML = `<div class="hd">${pkT[lang].hdT}</div>` + TR.groups.map((g) => `<button type="button" class="row" role="menuitem" data-g="${g.id}"${trView && trGroup === g.id ? ' aria-current="true"' : ""}><span class="gi">${GICON[g.id]}</span><span class="nm">${esc(tz(g))}<small>${g.id === "taxi" ? (lang === "en" ? "Play it to the driver" : "说给司机听") : pkT[lang].n(cnt(g))}</small></span><span class="go" aria-hidden="true">›</span></button>`).join("");
       trMenu.querySelectorAll(".row").forEach((b) => (b.onclick = () => { close(); trOpen(b.dataset.g); }));
       drawTrBtn();
     }
@@ -3932,8 +3942,8 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   for (const g of FAR) { const p = [g.items[0].xy[0] / 10, g.items[0].xy[1] / 10]; g.sts = nearStops(p); g.st = g.sts[0] || null; g.rp = rot(p); }
   { const sm = FAR.find((q) => q.g === "scimus"), gm = SZ_M.stops.find((x) => x.n === "光明"); if (sm && gm) { sm.sts = [gm]; sm.st = gm; } }   // 科技馆位置是估的，按 Wiki 写的「地铁 6 号线光明站」
   const badge = (r) => `<span class="wk-ln" style="background:${(SZ_M.lines.find((L) => L.ref === r) || {}).col || "#888"}">${r}</span>`;
-  Object.assign(I18N.zh, { wkCityT: "从 OCT-LOFT 出发", wkCitySub: "深南大道为主轴 · 地铁线 · 直线距离", wkBack: "回到园区 3D", wkNear: "最近地铁站", wkOctSt: "OCT 这边", wkStn: (n) => `${n}站`, wkAxis: "深南大道", wkFar: "图外" });
-  Object.assign(I18N.en, { wkCityT: "From OCT-LOFT", wkCitySub: "Shennan Blvd as the axis · metro lines · straight-line distance", wkBack: "Back to the 3D park", wkNear: "Nearest metro", wkOctSt: "Near OCT", wkStn: (n) => n, wkAxis: "Shennan Blvd", wkFar: "off map" });
+  Object.assign(I18N.zh, { wkCityT: "去哪儿", wkCitySub: "深南大道为主轴 · 地铁线 · 直线距离", wkBack: "回到园区 3D", wkNear: "最近地铁站", wkOctSt: "OCT 这边", wkStn: (n) => `${n}站`, wkAxis: "深南大道", wkFar: "图外" });
+  Object.assign(I18N.en, { wkCityT: "Where to go", wkCitySub: "Shennan Blvd as the axis · metro lines · straight-line distance", wkBack: "Back to the 3D park", wkNear: "Nearest metro", wkOctSt: "Near OCT", wkStn: (n) => n, wkAxis: "Shennan Blvd", wkFar: "off map" });
 
   const ov = document.createElement("div"); ov.id = "wkCity"; ov.hidden = true; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true");
   ov.innerHTML = `<div class="wkc-top"><button type="button" class="wkc-back"></button><div class="wkc-h"><b></b><small></small></div></div><div class="wkc-chips" role="tablist"></div><div class="wkc-map"></div><div class="wkc-card"></div>`;

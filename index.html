@@ -24,8 +24,8 @@
   .lb.loft.sel { background:var(--accent); border:2px solid var(--brand); border-radius:4px; padding:0 5px; text-shadow:none; }
   /* C2 主会场强化（候选） */
   .lb.c2 { font-size:16px; font-weight:650; border-radius:4px; padding:2px 8px; text-shadow:none; z-index:1; }
-  .lb.c2-a { background:var(--brand); color:#fff; }
-  .lb.c2.sel { background:var(--accent); color:var(--ink); border:2px solid var(--brand); }   /* 选中时 lime 底配深色字，白字在 lime 上看不清 */
+  .lb.c2-a { background:var(--accent); color:var(--ink); box-shadow:inset 0 0 0 1px #829700; }   /* 主会场用主题色 lime（pollux 2026-11-24）：标签面积小用纯 lime + 深字 + 橄榄细边 */
+  .lb.c2.sel { background:var(--accent); color:var(--ink); border:2px solid var(--ink); box-shadow:none; }   /* 选中时 lime 底配深色字，白字在 lime 上看不清 */
   .lb.c2-b { background:none; color:var(--ink); font-size:20px; text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }   /* 单行字不加框（pollux 约定） */
   .lb.c2-c { background:none; color:#fff; font-size:20px; text-shadow:none; }   /* 标牌不用黑底白字（pollux 约定），只靠深色体量强化 */
   .lb.c2flag { background:var(--brand); color:#fff; font-size:12px; font-weight:650; padding:1px 6px; border-radius:2px; pointer-events:auto; cursor:pointer; }
@@ -62,7 +62,7 @@
   .legend .seg[aria-pressed="false"] svg { opacity:.3; }
   /* 「强调园区楼栋」：未按下是普通白底；按下用品牌棕（参考项目第二主题色）实心强化 */
   .legend .seg.emph-btn { color:var(--brand); }   /* 「强调园区楼栋」：选中 / 未选中和其他图层同一套（白底细框 / 浅底淡图标），不再用品牌棕实心（pollux 2026-11-24）；图标保留品牌棕 */
-  body.emph .lb.loft { background:var(--brand); color:#fff; text-shadow:none; border-radius:4px; padding:0 5px; }
+  body.emph .lb.loft:not(.c2) { background:var(--brand); color:#fff; text-shadow:none; border-radius:4px; padding:0 5px; }
   body.emph .lb.loft.sel { background:var(--accent); color:var(--ink); }
   .legend { flex-wrap:nowrap; justify-content:space-between; }
   #views .seg.on { background:var(--accent); color:var(--ink); }   /* lime 只留给选中和主操作 */
@@ -1106,11 +1106,11 @@ const hiProxyMat = new THREE.MeshBasicMaterial({ color: 0xdfff2f, transparent: t
 // C2 主会场强化：候选 a 品牌棕体量 / b 楼顶旗标 / c 深色体量；"none" = 和其他楼一样（由 build-web 注入 window.OCT_C2_STYLE）
 const C2_STYLE = window.OCT_C2_STYLE || "none";
 const C2_MAT = {
-  a: new THREE.MeshLambertMaterial({ color: 0xd9b6a2, side: THREE.DoubleSide, ...PO }),
+  a: new THREE.MeshLambertMaterial({ color: 0xe3ebb4, side: THREE.DoubleSide, ...PO }),   // 主会场用主题色 lime 标识（pollux 2026-11-24）；大面积不用纯 #dfff2f，压成浅灰绿不刺眼，选中时才是纯 lime
   b: new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide }),
   c: new THREE.MeshLambertMaterial({ color: 0x3a3632, side: THREE.DoubleSide }),
 };
-const C2_EDGE = { a: new THREE.LineBasicMaterial({ color: 0x6d3425 }), b: new THREE.LineBasicMaterial({ color: 0x6d3425 }), c: new THREE.LineBasicMaterial({ color: 0x201f1c }) };
+const C2_EDGE = { a: new THREE.LineBasicMaterial({ color: 0x6f8000 }), b: new THREE.LineBasicMaterial({ color: 0x6d3425 }), c: new THREE.LineBasicMaterial({ color: 0x201f1c }) };
 for (const b of D.buildings) {
   const shape = new THREE.Shape(b.ring.map(V2));
   const geo = new THREE.ExtrudeGeometry(shape, { depth: b.h, bevelEnabled: false });
@@ -2603,7 +2603,7 @@ window.__ready = true;
     flats.forEach((o) => { const c = on ? flatNight(o) : o.userData.dayCol; o.material.color.set(c); o.material.emissive.set(on ? c : 0x000000); o.material.emissiveIntensity = on ? 0.7 : 1; });
     ocatMats.forEach((m) => { m.color.set(m.userData.dayCol); if (on) m.color.multiplyScalar(0.72); });
     matCtx.color.set(on ? N.ctx : DAY.ctx);
-    if (c2m) { c2m.emissive.set(on ? 0x6d3425 : 0x000000); c2m.emissiveIntensity = on ? 0.55 : 1; }   // C2 主会场：夜里仍是最显眼的一栋
+    if (c2m) { c2m.emissive.set(on ? (C2_STYLE === "a" ? 0x4c5a00 : 0x6d3425) : 0x000000); c2m.emissiveIntensity = on ? 0.5 : 1; }   // lime 主会场夜里用暗橄榄微光，不发亮刺眼   // C2 主会场：夜里仍是最显眼的一栋
     hiMat.emissive.set(on ? 0xdfff2f : 0x000000); hiMat.emissiveIntensity = on ? 0.75 : 1;           // 选中：夜里也是纯 lime
     glowMats.forEach((x) => { x.mat.emissive.set(on ? x.color : 0x000000); x.mat.emissiveIntensity = on ? x.intensity : 1; });
     nightObjs.forEach((o) => { o.visible = on; });

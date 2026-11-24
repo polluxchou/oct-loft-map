@@ -412,6 +412,36 @@
     #trm #helpBtn[aria-expanded="true"] { background:var(--ink); color:#fff; }
     #trm #helpBtn::before { content:""; position:absolute; left:-4px; top:8px; bottom:8px; width:1px; background:var(--line); }
     #help { margin-top:128px; }   /* 说明落在第 3 层下面 */
+    /* 2026-11-24 pollux：「简化 logo 那一行的信息，和语言指南针那一行合并」——第 1 行左边只留「OCT-LOFT」，右边接时间 · 语种 · ? · 指北针；第 2 行图标栏 */
+
+    header h1 { width:auto; height:52px; padding:0 12px; font-size:17px; }
+    header h1 .nm { font-size:17px; } header h1 .sub { display:none; }
+    #trm { top:calc(var(--st, 0px) + 8px); padding:3px 3px 3px 4px; }
+    #trm > #dn .au { display:none; }   /* 「自动」小字收进点开的菜单，让出标题位置 */
+    #hbar { top:calc(var(--st, 0px) + 8px + 52px + 8px); }
+    #help { margin-top:68px; }   /* 说明落在图标栏下面 */
+  }
+  /* 底部面板收起时两层（pollux 2026-11-24）：第 1 层「骑车认路」+ 1x / 2x / 3x，第 2 层视角格 */
+  @media (max-width: 640px) {
+    #mrow1 { display:flex; gap:8px; align-items:stretch; }
+    #mrow1:empty { display:none; }
+    #mrow1 .mo-wide { flex:1 1 auto; width:auto; min-width:0; }
+    #mrow1 #zoomCtl { flex:none; display:flex; gap:6px; border:none; padding:0; background:none; }
+    #mrow1 #zoomCtl .seg { flex:none; width:44px; min-width:44px; min-height:48px; padding:0; font-size:14px; justify-content:center; box-shadow:inset 0 0 0 1px var(--line); }
+    #mrow1 #zoomCtl .seg.on { box-shadow:none; }
+    #mqrow #mviews .seg { flex:1 1 0; }
+  }
+  /* 图标栏放不下（pollux 2026-11-24：「交通图标收成一个下拉」）：交通 4 个图标收成栏尾一个下拉按钮，菜单右对齐展开 */
+  @media (max-width: 640px) {
+    #hbar .trpk { order:2; flex:none; }
+    #hbar .trpk .pk { height:44px; border:none; border-radius:7px; padding:0 6px 0 8px; gap:2px; }
+    #hbar .trpk .pk .t { display:none; }
+    #hbar .trpk .pk[aria-expanded="true"] { background:var(--soft); }
+    #hbar .trpk .pk.sel { background:var(--accent); }
+    #hbar .trpk .pkmenu { left:auto; right:0; top:52px; }
+  }
+  @media (max-width: 369px) {
+    header h1, header h1 .nm { font-size:15px; } header h1 { padding:0 9px; }   /* 360 宽：标题和右侧模组之间留 ≥ 8 px */
   }
 
   /* ===== 底栏钉在滚动区外（pollux 2026-11-20：拖动上方列表高度时底部按钮不要被迫抖动）。main.js dockActions() 把 .actions 从 #pc 搬到 #panel / #sheet 底，不再用 sticky ===== */
@@ -441,10 +471,10 @@
 <div id="mpick">
   <div class="pkw"><button type="button" class="pk" id="pkLay" aria-haspopup="true" aria-expanded="false" aria-controls="pkLayMenu"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5Z"/><path d="m2 12.5 10 5 10-5"/><path d="m2 17 10 5 10-5"/></svg><span class="t" id="pkLayT"></span><span class="n" id="pkLayN"></span><svg class="cv" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div class="pkmenu" id="pkLayMenu" role="group" hidden></div></div>
-  <div class="pkw"><button type="button" class="pk" id="pkTr" aria-haspopup="menu" aria-expanded="false" aria-controls="pkTrMenu"><span class="ic" id="pkTrI"></span><span class="t" id="pkTrT"></span><svg class="cv" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <div class="pkmenu" id="pkTrMenu" role="menu" hidden></div></div>
 </div>
-<div id="hbar"><span class="vd" aria-hidden="true"></span><div class="trg" id="trIcons" role="group"></div></div>
+<div id="hbar"><span class="vd" aria-hidden="true"></span>
+<div class="pkw trpk"><button type="button" class="pk" id="pkTr" aria-haspopup="menu" aria-expanded="false" aria-controls="pkTrMenu"><span class="ic" id="pkTrI"></span><span class="t" id="pkTrT"></span><svg class="cv" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="pkmenu" id="pkTrMenu" role="menu" hidden></div></div></div>
 <div id="panel"><button class="x" id="close" data-i18n-aria="close" aria-label="关闭">×</button><div id="pc"></div></div>
 <div id="bbar"><nav id="views" data-i18n-aria="viewsNav" aria-label="视角与导航"></nav><div id="zoomCtl" role="group" data-i18n-aria="zoomAria" aria-label="缩放档位"><button type="button" class="seg" data-z="1">1x</button><button type="button" class="seg" data-z="2">2x</button><button type="button" class="seg" data-z="3">3x</button></div></div>
 <div class="attr-m" data-i18n="footerShort"></div>
@@ -452,7 +482,7 @@
   <button type="button" id="grab" data-i18n-aria="grab" aria-label="展开或收起面板" aria-expanded="false"></button>
   <div id="sheetBody">
     <div id="home">
-      <div class="peek"><button type="button" class="mprimary" id="navBtn"></button><div id="mqrow"><nav id="mviews" class="quick" data-i18n-aria="viewsNav" aria-label="视角"></nav></div></div>
+      <div class="peek"><button type="button" class="mprimary" id="navBtn"></button><div id="mrow1"></div><div id="mqrow"><nav id="mviews" class="quick" data-i18n-aria="viewsNav" aria-label="视角"></nav></div></div>
       <div class="more">
         <section><h3 data-i18n="layersT"></h3><div id="legendSlot"></div></section>
         <section><h3 data-i18n="viewsTab"></h3><div id="slotRows" class="vrows"></div></section>
@@ -649,6 +679,217 @@ function buildOCAT(THREE, b) {
 }
 
 return buildOCAT;
+})();
+const buildC2Hall = (() => {
+const C2_LOGO_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"331\" height=\"41\" viewBox=\"0 0 331 41\" fill=\"none\">\n<path d=\"M0 11.3H4.5L4.39996 16.5H4.59998C5.29998 12.8 7.2 10.5 10 10.5C12.8 10.5 14.7 12.3 15.2 16.2H15.4C16 13 18 10.5 20.7 10.5C24.6 10.5 26.3 13.7 26.3 20.4V39.6H21.8V21.1C21.8 17.4 20.8 15.5 18.8 15.5C16.8 15.5 15.3 18.3 15.3 22V39.6H10.9V21.1C10.9 17.4 9.8 15.5 8 15.5C5.7 15.5 4.5 18.3 4.5 22.6V39.5H0.0999756V11.3H0Z\" fill=\"#DFFF2F\" />\n<path d=\"M104.102 0H108.901V18.7H109.102C109.802 14.5 113.002 10.5 117.802 10.5C123.502 10.5 126.501 14.6 126.501 22.4V39.6H121.802V23.2C121.802 17.8 119.502 15 115.802 15C111.502 15 108.901 20 108.901 24.9V39.6H104.102V0Z\" fill=\"#DFFF2F\" />\n<path d=\"M273 25.5C273 16.4 278.2 10.5 285.4 10.5C292.5 10.5 297.5 15.7 297.5 24.9C297.5 25.7 297.5 26.3 297.4 26.9H277.6C277.8 32.7 281 36.2 285.5 36.2C289 36.2 291.7 34.2 292.5 30.5H297.2C296.3 37 291.5 40.5 285.3 40.5C278.4 40.5 273 35 273 25.5ZM292.7 23.3C292.6 18.2 289.7 14.6 285.3 14.6C281 14.6 278 18.3 277.7 23.3H292.7Z\" fill=\"#DFFF2F\" />\n<path d=\"M58.0992 39.7008H53.5992V34.1008L48.5992 39.7008H40.6992L35.6992 34.1008V11.3008H40.3992V32.5008L42.6992 35.1008H47.4992L53.2992 28.6008V11.4008H57.9991V39.7008H58.0992Z\" fill=\"#DFFF2F\" />\n<path d=\"M240.199 1.5H244.699V17L249.699 11.4H257.599L262.599 17V39.8H257.899V18.5L255.599 15.9H250.799L244.999 22.4V39.6H240.299V1.5H240.199Z\" fill=\"#DFFF2F\" />\n<path d=\"M172.102 11.3008H176.602V16.9008L181.602 11.3008H189.501L194.501 16.9008V39.7008H189.802V18.5008L187.501 15.9008H182.702L176.901 22.4008V39.6008H172.202V11.3008H172.102Z\" fill=\"#DFFF2F\" />\n<path d=\"M155.502 27.4004L160.202 22.8004V15.5004L155.502 10.9004H142.602L137.902 15.5004V34.6003L142.602 39.2004H160.202V34.6003H142.602V27.3004H155.502V27.4004ZM155.502 22.8004H142.602V15.5004H155.502V22.8004Z\" fill=\"#DFFF2F\" />\n<path d=\"M325.901 11.3008H313.001L308.301 15.9008V39.7008H313.001V15.9008H325.901V39.7008H330.601V15.9008L325.901 11.3008Z\" fill=\"#DFFF2F\" />\n<path d=\"M79.4541 28.3721L73.3008 35.0986H81.1006V39.6992H69.9004L67.3008 34.8984L76.2773 25.0859L79.4541 28.3721ZM94.8008 11.5986L85.8789 21.3496L82.7021 18.0635L88.8008 11.3984H81.1006V6.79883H92.2012L94.8008 11.5986Z\" fill=\"#DFFF2F\" />\n<path d=\"M90.1008 39.6992H81.1006V35.0986L89.4007 35.0992L69.0007 13.9992C67.8007 12.7992 67.5008 10.8992 68.1008 9.29919C68.8008 7.69919 70.3007 6.69922 72.0007 6.69922H81.0007V11.2992H72.7008L93.1008 32.3992C94.3008 33.5992 94.6007 35.4992 94.0007 37.0992C93.4007 38.6992 91.8008 39.6992 90.1008 39.6992Z\" fill=\"#DFFF2F\" />\n<path d=\"M215.454 28.3721L209.301 35.0986H217.101V39.6992H205.9L203.301 34.8984L212.277 25.0859L215.454 28.3721ZM230.801 11.5986L221.879 21.3496L218.702 18.0635L224.801 11.3984H217.101V6.79883H228.201L230.801 11.5986Z\" fill=\"#DFFF2F\" />\n<path d=\"M226.101 39.6992H217.101V35.0986L225.401 35.0992L205.001 13.9992C203.801 12.7992 203.501 10.8992 204.101 9.29919C204.801 7.69919 206.301 6.69922 208.001 6.69922H217.001V11.2992H208.701L229.101 32.3992C230.301 33.5992 230.601 35.4992 230.001 37.0992C229.401 38.6992 227.801 39.6992 226.101 39.6992Z\" fill=\"#DFFF2F\" />\n</svg>";
+// C2 主会场构件级外形（pollux 2026-11-24 选 c「材质线」，放进地图替换挤出方块）
+// 依据：pollux 提供的 SketchUp 模型截图（figures/oct-loft/c2-model/ref/），尺寸与来源见 figures/oct-loft/c2-model/尺寸.md
+// 候选与原始渲染：figures/oct-loft/c2-model/candidates/c2.html（?v=c&vx=1.7 即本文件）
+// 用法同 ocat.js：const g = buildC2Hall(THREE, b)；b 不是 C2 返回 null。返回已放到世界坐标的 Group，g.userData.top = 最高点（m）
+// 平面 = OSM 合并轮廓最小外接矩形（明确）；高度、分段、构件 = 估（截图推断），.dae 到了再量
+// 主会场不必死守周边比例（pollux 2026-11-24）：墙高 ×1.7，屋面坡度不变
+
+function buildC2Hall(THREE, b) {
+  if (!b || !b.loft || b.name !== "C2") return null;
+  const VX = 1.7;
+  const D = {
+    L: 132.8, W: 57.8, rot: -3.9, u0: -173.76, v0: -280.89,
+    annexD: 12, annexW: 38, annexH: 5 * VX,
+    eave: 9 * VX, pitch: 18, ov: 0.8, gov: 0.6,
+    stripW: 9, stripInset: 0.08, stripWin: 1.8, stripRise: 2.6,
+    silver: 3.6 * VX, glassTop: 7.8 * VX, whiteTop: 4 * VX,
+    canX0: 0.35, canD: 5.5, canY: 3.9 * VX, canOver: 1,   // 地图里雨棚东端只出挑 1 m，不碰 C3
+  };
+  const HX0 = D.annexD, HX1 = D.L, HL = HX1 - HX0, W = D.W, E = D.eave;
+  const TP = Math.tan(D.pitch * Math.PI / 180);
+  const R = E + (W / 2) * TP;
+  const C = {
+    roof: 0x5d6163, roofEdge: 0x2f3233, red: 0xb8402f, glass: 0xbcd0d6, glassDark: 0x7f939a, silver: 0xc7cbcd,
+    white: 0xf4f1ea, brick: 0xa47e69, canopy: 0xd6ecf2, post: 0x3a3632,
+  };
+
+  const g = new THREE.Group(); g.name = "c2-hall";
+  const PO = { polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
+  const M = {};
+  const mat = (c, o = {}) => (M[c + JSON.stringify(o)] ||= new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide, ...PO, ...o }));
+  const L = {};
+  const lineMat = (c) => (L[c] ||= new THREE.LineBasicMaterial({ color: c }));
+  const EDGE_DARK = lineMat(C.roofEdge);
+  function add(geo, m, edge) {
+    const me = new THREE.Mesh(geo, m); me.castShadow = true; me.receiveShadow = true; g.add(me);
+    if (edge) g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edge));
+    return me;
+  }
+  function box(x0, x1, y0, y1, z0, z1, m, edge) {
+    const geo = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0); geo.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    return add(geo, m, edge);
+  }
+  // 沿 x 方向挤出 z-y 平面上的多边形
+  function prism(pts, x0, x1, m, edge) {
+    const n = pts.length, pos = [], idx = [];
+    for (const x of [x0, x1]) for (const [z, y] of pts) pos.push(x, y, z);
+    const tri = THREE.ShapeUtils.triangulateShape(pts.map(([z, y]) => new THREE.Vector2(z, y)), []);
+    for (const [a, c, d] of tri) { idx.push(a, d, c); idx.push(a + n, c + n, d + n); }
+    for (let i = 0; i < n; i++) { const j = (i + 1) % n; idx.push(i, j, j + n, i, j + n, i + n); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx);
+    const h = geo.toNonIndexed(); h.computeVertexNormals();
+    return add(h, m, edge);
+  }
+  // 材质细线：远景（每米不到 ~1.6 px）淡出，避免波纹 / 砌缝挤成摩尔纹
+  const segs = {};
+  const seg = (c, a, d) => (segs[c] ||= []).push(...a, ...d);
+  const fineMats = [];
+  function flushSegs() {
+    for (const [c, arr] of Object.entries(segs)) {
+      const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(arr, 3));
+      const m = new THREE.LineBasicMaterial({ color: +c, transparent: true, opacity: 0.85 }); fineMats.push(m);
+      const ls = new THREE.LineSegments(geo, m); ls.userData.fine = true; g.add(ls);
+    }
+    const probe = g.children.find((o) => o.userData.fine);
+    if (probe) probe.onBeforeRender = (renderer, scene, camera) => {
+      const h = renderer.domElement.clientHeight || 800;
+      const d = camera.position.distanceTo(_c.setFromMatrixPosition(g.matrixWorld).add(_ctr));
+      const ppm = camera.isPerspectiveCamera ? h / (2 * d * Math.tan(camera.fov * Math.PI / 360)) : h / ((camera.top - camera.bottom) / camera.zoom);
+      const op = Math.max(0, Math.min(0.7, (ppm - 2.0) / 1.5 * 0.7));   // 每米 2 px 起才淡入，3.5 px 全显
+      for (const m of fineMats) { m.opacity = op; m.visible = op > 0.02; }
+    };
+  }
+  const _c = new THREE.Vector3(), _ctr = new THREE.Vector3(D.L / 2, 10, W / 2);
+
+  // ---------- 主体墙：后墙 / 山墙 暖白下段 + 砖上段 ----------
+  box(HX0, HX1, 0, D.whiteTop, 0, W, mat(C.white), lineMat(0x9c948c));
+  box(HX0, HX1, D.whiteTop, E, 0, W, mat(C.brick), lineMat(0x6e5244));
+  // 山墙三角（深灰）
+  const mRoof = mat(C.roof), tri = [[0, E], [W / 2, R], [W, E]];
+  prism(tri, HX0, HX0 + 0.3, mRoof, EDGE_DARK);
+  prism(tri, HX1 - 0.3, HX1, mRoof, EDGE_DARK);
+  // 屋面两块坡板（含出挑）
+  function roofPlates(x0, x1, zc, half, yBase, over, thick = 0.4) {
+    const yR = yBase + half * TP, zL = zc - half - over, zR = zc + half + over, yL = yBase - over * TP;
+    prism([[zL, yL], [zc, yR], [zc, yR + thick], [zL, yL + thick]], x0, x1, mRoof, EDGE_DARK);
+    prism([[zc, yR], [zR, yL], [zR, yL + thick], [zc, yR + thick]], x0, x1, mRoof, EDGE_DARK);
+    return yR + thick;
+  }
+  roofPlates(HX0 - D.gov, HX1 + D.gov, W / 2, W / 2, E, D.ov);
+
+  // ---------- 屋脊天窗带 ----------
+  const sx0 = HX0 + D.stripInset * HL, sx1 = HX1 + D.gov, sw = D.stripW, zc = W / 2;
+  const sWinTop = R + D.stripRise;
+  box(sx0, sx1, R - 2.2, sWinTop - D.stripWin, zc - sw / 2, zc + sw / 2, mRoof, EDGE_DARK);
+  box(sx0, sx1, sWinTop - D.stripWin, sWinTop, zc - sw / 2, zc + sw / 2, mat(C.glassDark), EDGE_DARK);
+  const top = roofPlates(sx0 - 0.5, sx1 + 0.5, zc, sw / 2, sWinTop, 0.5, 0.3);
+  const stri = [[zc - sw / 2, sWinTop], [zc, sWinTop + (sw / 2) * TP], [zc + sw / 2, sWinTop]];
+  prism(stri, sx0, sx0 + 0.2, mRoof, EDGE_DARK);
+  prism(stri, sx1 - 0.2, sx1, mRoof, EDGE_DARK);
+
+  // ---------- 西侧附楼 ----------
+  box(0, HX0, 0, D.annexH, 0, D.annexW, mat(C.white), lineMat(0xb9b1aa));
+  for (const z of [8, 26]) box(-0.12, -0.05, 0, 3.4, z, z + 3.2, mat(0x8d8a84));
+
+  // ---------- 南立面：银灰门板 / 玻璃格栅 / 红色檐板，玻璃雨棚 ----------
+  box(HX0, HX1, 0, D.silver, W, W + 0.06, mat(C.silver), lineMat(0x8d9294));
+  box(HX0, HX1, D.silver, D.glassTop, W, W + 0.06, mat(C.glass), lineMat(0x7f939a));
+  box(HX0 - 0.2, HX1 + 0.2, D.glassTop, E + 0.1, W, W + 0.35, mat(C.red), lineMat(0x7d2a1f));
+  const cx0 = HX0 + D.canX0 * HL, cx1 = HX1 + D.canOver;
+  box(cx0, cx1, D.canY, D.canY + 0.25, W, W + D.canD, mat(C.canopy, { transparent: true, opacity: 0.75 }), lineMat(0x5d6163));
+  for (let x = cx0 + 4; x < cx1 - 1; x += 16) box(x, x + 0.35, 0, D.canY, W + D.canD - 0.6, W + D.canD - 0.25, mat(C.post));
+  for (const x of [HX0 + 0.55 * HL, HX0 + 0.62 * HL]) box(x, x + 4, 0, 3.2, W + 0.07, W + 0.12, mat(C.post));
+
+  // ---------- 材质线 ----------
+  const Wf = W + 0.09;
+  // 竖线放疏（pollux 2026-11-24「手机上太密了」）：去掉 0.9 m 波纹线和红檐板波纹线，只留门板缝 6 m、玻璃竖梃 4.5 m
+  for (let x = HX0 + 6; x < HX1; x += 6) seg(0x5d6163, [x, 0, Wf + 0.01], [x, D.silver, Wf + 0.01]);
+  for (let x = HX0 + 4.5; x < HX1; x += 4.5) seg(0x55666c, [x, D.silver, Wf], [x, D.glassTop, Wf]);
+  seg(0x55666c, [HX0, (D.silver + D.glassTop) / 2, Wf], [HX1, (D.silver + D.glassTop) / 2, Wf]);
+  for (let y = D.whiteTop + 1.5; y < E - 0.5; y += 1.5) {
+    seg(0x8a6654, [HX0, y, -0.09], [HX1, y, -0.09]);
+    seg(0x8a6654, [HX1 + 0.09, y, 0], [HX1 + 0.09, y, W]);
+    seg(0x8a6654, [HX0 - 0.09, y, D.annexW], [HX0 - 0.09, y, W]);
+  }
+  // muShenzhen logo（pollux 2026-11-24）：南坡屋面正中，Brand Portal simple 荧光绿原档（brand-plan/assets，commit 287a326），等比缩放不变形
+  // 字高 LH，四周留白 ≥ 0.5 LH（rules.json clear-space）；留白框内不画屋面板缝
+  const LH = 12, LW = LH * 331 / 41, LX = HX0 + HL / 2;
+  const cosP = Math.cos(D.pitch * Math.PI / 180), sinP = Math.sin(D.pitch * Math.PI / 180);
+  const sEave = 0, sTop = (W / 2 + D.ov - (sw / 2 + 0.5)) / cosP;   // 南坡可用坡长（檐口 → 天窗带边）
+  const LS = (sEave + sTop) / 2;                                       // logo 中心离檐口的坡长
+  const logoKeep = (x, sAlong) => !(Math.abs(x - LX) < LW / 2 + LH / 2 && Math.abs(sAlong - LS) < LH);
+  for (let k = 1; k <= 7; k++) {
+    const d = (W / 2 + D.ov) * k / 8, y = E - D.ov * TP + d * TP + 0.42, sAlong = d / cosP;
+    seg(0x3a3d3e, [HX0 - D.gov, y, -D.ov + d], [HX1 + D.gov, y, -D.ov + d]);
+    if (logoKeep(LX, sAlong)) seg(0x3a3d3e, [HX0 - D.gov, y, W + D.ov - d], [HX1 + D.gov, y, W + D.ov - d]);
+    else {
+      seg(0x3a3d3e, [HX0 - D.gov, y, W + D.ov - d], [LX - LW / 2 - LH / 2, y, W + D.ov - d]);
+      seg(0x3a3d3e, [LX + LW / 2 + LH / 2, y, W + D.ov - d], [HX1 + D.gov, y, W + D.ov - d]);
+    }
+  }
+  if (typeof C2_LOGO_SVG === "string") {
+    const cnv = document.createElement("canvas"); cnv.width = 4096; cnv.height = 512;
+    const tex = new THREE.CanvasTexture(cnv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8; tex.premultiplyAlpha = true;   // 预乘：缩小后透明边不发黑
+    const img = new Image();
+    img.onload = () => { const ctx = cnv.getContext("2d"), w = cnv.width, h = w * 41 / 331; ctx.drawImage(img, 0, (cnv.height - h) / 2, w, h); tex.needsUpdate = true; };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(C2_LOGO_SVG);
+    const ph = LW * 512 / 4096;   // 画布比 logo 高一点（上下透明），平面按画布比例
+    const logo = new THREE.Mesh(new THREE.PlaneGeometry(LW, ph), new THREE.MeshBasicMaterial({ map: tex, transparent: true, premultipliedAlpha: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }));
+    const up = new THREE.Vector3(0, sinP, -cosP), nrm = new THREE.Vector3(0, cosP, sinP);
+    logo.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(1, 0, 0), up, nrm));
+    const zE = W + D.ov, yE = E - D.ov * TP + 0.4;   // 檐口处屋面上表面
+    logo.position.set(LX, yE + LS * sinP + 0.06, zE - LS * cosP);
+    logo.renderOrder = 2; logo.name = "c2-logo"; g.add(logo);
+    // 屏幕宽不到约 100 px 就淡出（再小读不出来，也免得压在「C2 主会场」标签下）；Brand Portal rules.json 建议 simple logo 最小 160 CSS px（recommendation），总览时达不到
+    const ends = [new THREE.Vector3(-LW / 2, 0, 0), new THREE.Vector3(LW / 2, 0, 0), new THREE.Vector3(0, -LH / 2, 0), new THREE.Vector3(0, LH / 2, 0)], pv = new THREE.Vector3();
+    const LMIN = +new URLSearchParams(location.search).get("logoMin") || 100;   // ?logoMin=160 对照官方建议
+    logo.onBeforeRender = (renderer, scene, camera) => {
+      const el = renderer.domElement, w = el.clientWidth, h = el.clientHeight;
+      const px = ends.map((e) => { pv.copy(e).applyMatrix4(logo.matrixWorld).project(camera); return [(pv.x + 1) * w / 2, (1 - pv.y) * h / 2]; });
+      const wpx = Math.hypot(px[1][0] - px[0][0], px[1][1] - px[0][1]);
+      const op = Math.max(0, Math.min(1, (wpx - (LMIN - 8)) / 16));   // 约 LMIN px 起显示：pollux 2026-11-24 定 100（官方建议 160 px，总览会看不到）
+      logo.material.opacity = op;
+      const xs = px.map((p) => p[0]), ys = px.map((p) => p[1]);   // 测试用：logo 在屏幕上的大致范围（四条中线端点外接框，未计倾斜）
+      window.__c2Logo = { wpx: Math.round(wpx), op, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(Math.round) };
+    };
+  }
+  for (let x = sx0 + 6; x < sx1; x += 6) for (const z of [zc - sw / 2 - 0.02, zc + sw / 2 + 0.02]) seg(0x2f3233, [x, sWinTop - D.stripWin, z], [x, sWinTop, z]);
+  for (let k = 1; k < 10; k++) {
+    const x = sx0 + (sx1 - sx0) * k / 10, h = (sw / 2 + 0.5) * TP, y0 = sWinTop - 0.5 * TP + 0.32;
+    seg(0x2f3233, [x, y0, zc - sw / 2 - 0.5], [x, y0 + h, zc]);
+    seg(0x2f3233, [x, y0 + h, zc], [x, y0, zc + sw / 2 + 0.5]);
+  }
+  for (let x = cx0 + 6; x < cx1; x += 6) seg(0x5d6163, [x, D.canY + 0.27, W], [x, D.canY + 0.27, W + D.canD]);
+  flushSegs();
+
+  // 放回地图坐标（OSM 外接矩形西北角 = 局部原点，长轴偏 -3.9°）
+  const t = D.rot * Math.PI / 180;
+  g.rotation.y = -t;
+  g.position.set(D.u0 * Math.cos(t) - D.v0 * Math.sin(t), 0, D.u0 * Math.sin(t) + D.v0 * Math.cos(t));
+  g.userData.top = +top.toFixed(2);
+  // 点选 / 选中高亮用的代理外形：贴着模型（主厅五边形截面 + 天窗带 + 附楼），各向外胀 0.4 m 免得和模型面打架
+  // （原来用 OSM 合并轮廓直接挤高，选中时 lime 罩子和模型对不齐，pollux 2026-11-24）
+  {
+    const k = 0.4, parts = [];
+    const pentagon = (pts, x0, x1) => {
+      const n = pts.length, pos = [];
+      const tri = THREE.ShapeUtils.triangulateShape(pts.map(([z, y]) => new THREE.Vector2(z, y)), []);
+      const P = (x, i) => [x, pts[i][1], pts[i][0]];
+      for (const [a, c, d] of tri) { pos.push(...P(x0, a), ...P(x0, d), ...P(x0, c), ...P(x1, a), ...P(x1, c), ...P(x1, d)); }
+      for (let i = 0; i < n; i++) { const j = (i + 1) % n; pos.push(...P(x0, i), ...P(x0, j), ...P(x1, j), ...P(x0, i), ...P(x1, j), ...P(x1, i)); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); parts.push(geo);
+    };
+    const yE = E - D.ov * TP;   // 檐口出挑处屋面底
+    pentagon([[-D.ov - k, 0], [W + D.ov + k, 0], [W + D.ov + k, yE + 0.4 + k], [W / 2, R + 0.4 + k / Math.cos(D.pitch * Math.PI / 180)], [-D.ov - k, yE + 0.4 + k]], HX0 - D.gov - k, HX1 + D.gov + k);
+    pentagon([[zc - sw / 2 - 0.5 - k, R - 0.5], [zc + sw / 2 + 0.5 + k, R - 0.5], [zc + sw / 2 + 0.5 + k, sWinTop - 0.5 * TP + 0.3 + k], [zc, top + k], [zc - sw / 2 - 0.5 - k, sWinTop - 0.5 * TP + 0.3 + k]], sx0 - 0.5 - k, sx1 + 0.5 + k);
+    pentagon([[-k, 0], [D.annexW + k, 0], [D.annexW + k, D.annexH + k], [-k, D.annexH + k]], -k, HX0);
+    const pos = []; for (const p of parts) pos.push(...p.getAttribute("position").array);
+    const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); pg.computeVertexNormals();
+    g.updateMatrix(); pg.applyMatrix4(g.matrix);
+    g.userData.proxyGeo = pg;
+  }
+  // 「C2 主会场」标签锚点放北坡（局部 z = 6）：等距 / 西南视角下落在屋脊后方，不压南坡 logo
+  const la = new THREE.Vector3(HX0 + HL / 2, 0, 6).applyAxisAngle(new THREE.Vector3(0, 1, 0), g.rotation.y).add(g.position);
+  g.userData.labelAt = [+la.x.toFixed(1), +la.z.toFixed(1)];
+  return g;
+}
+
+return buildC2Hall;
 })();
 const busStopMarker = (() => {
 // 公交站候亭模型（2026-11-20，参照 pollux 给的候亭效果图：深绿钢架 + 前高后低单坡顶、三块灯箱 / 屏幕 / 站牌、立柱亮绿灯带、木面长凳、垃圾桶、红砖铺地）
@@ -932,7 +1173,7 @@ const I18N = {
     title: "OCT-LOFT 3D 场地地图", hub: "华侨城创意文化园 · 南山",
     intro: "拖动旋转、滚轮缩放、右键或双指平移。点楼栋、地铁口、公交站看详情；底部可切等距视图、存 3 个视角、导航到 C2。",
     hint: "点地图上任意位置作为起点（也可以点地铁口、公交站）",
-    footer: "数据 © OpenStreetMap contributors (ODbL) · 2026-11-20 · 示意图，非测绘成果",
+    footer: "数据 © OpenStreetMap contributors (ODbL) · 2026-11-20 · 示意图，非测绘成果 · 视觉素材来源：mushenzhen",
     close: "关闭", viewsNav: "视角与导航", layers: "图层筛选",
     lay_loft: "强调园区楼栋", lay_context: "周边楼", lay_major: "主干道", lay_roads: "支路", lay_metro: "地铁", lay_bus: "公交",
     iso: "等距", isoAria: "等距视图（固定角度）", top: "俯视", topAria: "俯视图（2D，正北朝上）", topRow: "俯视图", topSub: "2D，正北朝上，可平移缩放", isoLocked: "已锁定角度", home: "自由", homeAria: "自由模式（可旋转、平移、缩放）", freeOn: "当前",
@@ -968,7 +1209,7 @@ const I18N = {
     title: "OCT-LOFT 3D Venue Map", hub: "OCT-LOFT Creative Culture Park · Nanshan",
     intro: "Drag to rotate, scroll to zoom, right-drag to pan. Tap buildings, metro exits or bus stops for details. The bar below has the isometric view, 3 saved views and directions to C2.",
     hint: "Tap anywhere on the map to set a start point (metro exits and bus stops work too)",
-    footer: "Data © OpenStreetMap contributors (ODbL) · 2026-11-20 · Indicative only, not a survey",
+    footer: "Data © OpenStreetMap contributors (ODbL) · 2026-11-20 · Indicative only, not a survey · Visual assets by mushenzhen",
     close: "Close", viewsNav: "Views and directions", layers: "Layer filters",
     lay_loft: "Highlight park buildings", lay_context: "Nearby buildings", lay_major: "Main roads", lay_roads: "Minor roads", lay_metro: "Metro", lay_bus: "Bus",
     iso: "Isometric", isoAria: "Isometric view (fixed angle)", top: "Top", topAria: "Top view (2D, north up)", topRow: "Top view", topSub: "2D, north up; pan and zoom only", isoLocked: "angle locked", home: "Free", homeAria: "Free mode (rotate, pan and zoom)", freeOn: "Current",
@@ -1118,8 +1359,10 @@ for (const b of D.buildings) {
   const isMain = b.name === "C2" && C2_STYLE !== "none";   // C2 = 本次活动主会场（pollux 2026-11-20），风格候选见 C2_STYLE
   const mat = isMain ? C2_MAT[C2_STYLE] : b.loft ? matLoft : b.inPark ? matOther : matCtx;
   // OCAT 两栋（B10、F2）用构件级模型（ocat.js，pollux 2026-11-20「Looks good, hand off」）：挤出体量留作隐形代理，只负责点选和选中高亮
-  const ocat = b.loft && typeof buildOCAT === "function" ? buildOCAT(THREE, b) : null;
-  const m = new THREE.Mesh(geo, ocat ? proxyMat : mat);
+  // C2 主会场同理（c2hall.js，pollux 2026-11-24 选 c「材质线」+ 屋面 muShenzhen logo）：代理高度跟模型最高点，点屋顶任何位置都选得中
+  const ocat = b.loft && typeof buildOCAT === "function" ? (buildOCAT(THREE, b) || (typeof buildC2Hall === "function" ? buildC2Hall(THREE, b) : null)) : null;
+  const pgeo = ocat?.userData.proxyGeo ? ocat.userData.proxyGeo : ocat?.userData.top ? (() => { const g2 = new THREE.ExtrudeGeometry(shape, { depth: ocat.userData.top, bevelEnabled: false }); g2.rotateX(-Math.PI / 2); return g2; })() : geo;
+  const m = new THREE.Mesh(pgeo, ocat ? proxyMat : mat);
   m.castShadow = b.inPark && !ocat; m.receiveShadow = b.inPark && !ocat;   // 半透明周边楼不接收阴影（透明面上的阴影波纹会随视角闪）
   m.userData = { kind: "building", b, base: ocat ? proxyMat : mat, proxy: !!ocat };
   if (ocat) { ocat.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); layer("fixed").add(ocat); }
@@ -1141,7 +1384,7 @@ for (const b of D.buildings) {
       flag.position.set(cc[0] + 7, b.h + 22, cc[1]); layer("fixed").add(flag);
       labels.push({ el: mk("loft c2 c2-b", b.name, m), pos: new THREE.Vector3(c[0], b.h + 2, c[1]), layer: "fixed", b });
       labels.push({ el: mk("c2flag", { zh: "主会场", en: "Main Venue" }, m), pos: new THREE.Vector3(cc[0] + 7, b.h + 22, cc[1]), layer: "fixed", b: null });
-    } else if (isMain) labels.push({ el: mk(`loft c2 c2-${C2_STYLE}`, { zh: "C2 主会场", en: "C2 Main Venue" }, m), pos: new THREE.Vector3(c[0], b.h + 2, c[1]), layer: "fixed", b });
+    } else if (isMain) labels.push({ el: mk(`loft c2 c2-${C2_STYLE}`, { zh: "C2 主会场", en: "C2 Main Venue" }, m), pos: ocat?.userData.labelAt ? new THREE.Vector3(ocat.userData.labelAt[0], ocat.userData.top + 16, ocat.userData.labelAt[1]) : new THREE.Vector3(c[0], b.h + 2, c[1]), layer: "fixed", b });   // 构件级 C2：标签放北坡，不压屋面 logo
     else labels.push({ el: mk("loft", b.name, m), pos: new THREE.Vector3(c[0], b.h + 2, c[1]), layer: "fixed", b });
   }
 }
@@ -1340,9 +1583,14 @@ function placeLabels() {
     if (far && L.layer === "fixed" && L.b && L.b.name !== "C2" && sel?.userData.b !== L.b) { L.el.style.display = "none"; continue; }
     tmp.copy(L.pos).project(camera);
     if (tmp.z > 1) { L.el.style.display = "none"; continue; }
-    const x = (tmp.x + 1) / 2 * innerWidth, y = (1 - tmp.y) / 2 * innerHeight;
+    let x = (tmp.x + 1) / 2 * innerWidth, y = (1 - tmp.y) / 2 * innerHeight;
     L.el.style.display = "block"; L.el.style.left = x + "px"; L.el.style.top = y + "px";
     const w = L.el.offsetWidth, hgt = L.el.offsetHeight;
+    // C2 主会场标签常驻：锚点在画面内时，整块标签夹在视口内（离边 ≥ 8 px），不被屏幕边裁掉（c2-model 会话，2026-11-24）
+    if (L.b?.name === "C2" && x >= 0 && x <= innerWidth && y >= 0 && y <= innerHeight) {
+      const cx = Math.min(Math.max(x, w / 2 + 8), innerWidth - w / 2 - 8), cy = Math.min(Math.max(y, hgt / 2 + 8), innerHeight - hgt / 2 - 8);
+      if (cx !== x || cy !== y) { x = cx; y = cy; L.el.style.left = x + "px"; L.el.style.top = y + "px"; }
+    }
     const hits = (b) => boxes.some((q) => !(b[2] < q[0] || b[0] > q[2] || b[3] < q[1] || b[1] > q[3]));
     // 标签框被已画的引线穿过（引线是竖线 [x, y0, x, y1]）
     const cut = (b) => leads.some(([lx, a, , c]) => lx > b[0] && lx < b[2] && Math.max(a, c) > b[1] && Math.min(a, c) < b[3]);
@@ -1573,7 +1821,7 @@ function applyLayout() {
     document.getElementById("attrSlot").appendChild(attrEl);
     document.getElementById("panelSlot").appendChild(panel);
     document.getElementById("trm").insertBefore(document.getElementById("helpBtn"), document.getElementById("compass"));   // 手机第 3 层：时间 · 语种 · ? · 指北针
-    document.getElementById("mqrow").appendChild(document.getElementById("zoomCtl"));   // 手机：缩放档位和快捷视角同一行
+    document.getElementById("mrow1").appendChild(document.getElementById("zoomCtl"));   // 手机：缩放档位和「骑车认路」同一行，视角格单独一行（pollux 2026-11-24：底部简化为 2 层）
   } else {
     document.getElementById("tools").prepend(legendEl); document.body.appendChild(attrEl);   // 桌面：图层图标回到顶栏工具行；数据来源放右下角
     legendEl.after(document.getElementById("helpBtn"));   // 桌面 / 平板：「?」紧跟 6 个图层图标并列（pollux 2026-11-20）
@@ -2374,6 +2622,7 @@ window.__ready = true;
   #pc .trv section.taxi h3 { display:flex; align-items:baseline; gap:8px; } #pc .trv section.taxi h3 .k { font-size:12px; font-weight:400; color:var(--muted); }
   #pc .trv .say { margin:2px 0 10px !important; font-size:16px; line-height:1.6; color:var(--ink); }
   #pc .trv .plays { display:flex; gap:8px; flex-wrap:wrap; }
+  .actions [data-taxi] { flex:1 1 0; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
   #pc .trv .play { min-height:44px; padding:0 16px; border:1px solid #829700; border-radius:8px; background:var(--accent); color:var(--ink); font:inherit; font-size:15px; font-weight:650; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
   #pc .trv .play:hover { background:#c9e71f; } #pc .trv .play[aria-pressed="true"] { background:var(--surface); border-color:var(--segline); font-weight:400; }
   #pc .trv .play:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
@@ -2419,12 +2668,12 @@ window.__ready = true;
   const speakTaxi = (v) => { try { const u = new SpeechSynthesisUtterance(TAXI_SAY.replace("C2", "C 二")); u.lang = "zh-CN"; u.rate = 0.9; const vs = speechSynthesis.getVoices().filter((x) => /zh[-_]CN/i.test(x.lang)); const pick = vs.find((x) => (v === "m" ? /male|yun|男|li-mu/i : /female|xiao|女|ting|mei/i).test(x.name)) || vs[0]; if (pick) u.voice = pick; u.onend = resetTaxiBtns; speechSynthesis.speak(u); return true; } catch { return false; } };
   const PLAY_ICO = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>', STOP_ICO = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3.5" y="3" width="3" height="10" fill="currentColor"/><rect x="9.5" y="3" width="3" height="10" fill="currentColor"/></svg>';
   const taxiBtn = (on, v) => `${on ? STOP_ICO : PLAY_ICO}<span>${lang === "en" ? (on ? "Stop" : v === "f" ? "Female voice" : "Male voice") : (on ? "停止" : v === "f" ? "女声播放" : "男声播放")}</span>`;
-  const resetTaxiBtns = () => pc.querySelectorAll("[data-taxi]").forEach((b) => { b.innerHTML = taxiBtn(false, b.dataset.taxi); b.setAttribute("aria-pressed", "false"); });
+  const resetTaxiBtns = () => document.querySelectorAll("[data-taxi]").forEach((b) => { b.innerHTML = taxiBtn(false, b.dataset.taxi); b.setAttribute("aria-pressed", "false"); });
   for (const a of Object.values(TAXI_AU)) a.addEventListener("ended", resetTaxiBtns);
   const taxiHtml = (km) => `<section class="taxi"><h3>${lang === "en" ? "Say this to the driver" : "说给司机听"}<span class="k">${lang === "en" ? "easiest from anywhere" : "从哪里来都最省事"}${km ? ` · ${lang === "en" ? "about" : "直线约"} ${km} km` : ""}</span></h3>`
     + `<p class="say" lang="zh-CN">“${TAXI_SAY}”</p>`
     + (lang === "en" ? `<p class="k">Show or play this to the driver (in Chinese). It asks for the OCT-LOFT North Zone, 2 Jinxiu North St, dropping off on the south side of Qiaoxiang Rd near Hall C2.</p>` : "")
-    + `<div class="plays"><button type="button" class="play" data-taxi="f" aria-pressed="false">${taxiBtn(false, "f")}</button><button type="button" class="play" data-taxi="m" aria-pressed="false">${taxiBtn(false, "m")}</button></div></section>`;
+    + `</section><div class="actions"><button type="button" class="primary play" data-taxi="f" aria-pressed="false">${taxiBtn(false, "f")}</button><button type="button" class="ghost play" data-taxi="m" aria-pressed="false">${taxiBtn(false, "m")}</button></div>`;   // 播放按钮放进 .actions，由 dockActions 钉在面板最底下（pollux 2026-11-24：「确保涉及到操作按钮在页面最底部直接可见」）
   function listHtml() {
     const tab = (g) => `<button type="button" role="tab" class="tab${g.id === trGroup ? " on" : ""}" aria-selected="${g.id === trGroup}" data-grp="${g.id}" title="${esc(tz(g))}">${GICON[g.id].replace(/width="22" height="22"/, 'width="18" height="18"')}<span>${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}</span></button>`;   // tab 上只写短名，括号里的说明放 title
     return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2><div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
@@ -2442,8 +2691,8 @@ window.__ready = true;
     });
     s += node(t("trExit"), esc(tz(TR.arrive.note)));
     s += leg(`${walkIcon}<span>${t("trWalk", walk.min, walk.m)}</span>`, null, true);
-    s += node(t("trC2"), t("trDest"), true) + `</div><button type="button" class="go" data-go>${t("trShow")}</button>`
-      + (h.alt ? `<p class="note">${esc(tz(h.alt))}</p>` : "") + `</section>`;
+    s += node(t("trC2"), t("trDest"), true) + `</div>`
+      + (h.alt ? `<p class="note">${esc(tz(h.alt))}</p>` : "") + `</section><div class="actions"><button type="button" class="primary" data-go>${t("trShow")}</button></div>`;   // 钉在面板最底下，不用滚到底才看到
     return s;
   }
   const setMode = () => document.body.classList.toggle("trmode", !!trView);
@@ -2518,10 +2767,12 @@ window.__ready = true;
     }
     // 按钮：没打开交通视图时写「交通」；选了某一组就换成那一组的图标 + 名字，用 lime 选中态
     const short = (g) => tz(g).replace(/\s*[（(].*[)）]\s*$/, "");
+    const TR_IC = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16"/></svg>';
     function drawTrBtn() {
       const g = trView && TR.groups.find((x) => x.id === trGroup);
       pkTr.classList.toggle("sel", !!g);
-      document.getElementById("pkTrI").innerHTML = g ? GICON[g.id].replace(/width="22" height="22"/, 'width="20" height="20"') : "";
+      document.getElementById("pkTrI").innerHTML = g ? GICON[g.id].replace(/width="22" height="22"/, 'width="20" height="20"') : TR_IC;   // 图标栏里只露图标：没选时用通用「路线」图标
+      pkTr.setAttribute("aria-label", g ? short(g) : pkT[lang].btn);
       document.getElementById("pkTrT").textContent = g ? short(g) : pkT[lang].btn;
     }
     let openMenu = null;
@@ -2530,22 +2781,13 @@ window.__ready = true;
     pkLay.onclick = (e) => { e.stopPropagation(); toggle(pkLay, layMenu, drawLay); };
     pkTr.onclick = (e) => { e.stopPropagation(); toggle(pkTr, trMenu, drawTr); };
     // 点菜单外面只收起菜单，不顺带选中地图上的楼
-    addEventListener("pointerdown", (e) => { if (openMenu && !e.target.closest("#mpick")) { close(); if (e.target.closest("#c, #labels")) { e.stopPropagation(); e.preventDefault(); } } }, true);
+    addEventListener("pointerdown", (e) => { if (openMenu && !e.target.closest("#mpick, #hbar .trpk")) { close(); if (e.target.closest("#c, #labels")) { e.stopPropagation(); e.preventDefault(); } } }, true);
     addEventListener("keydown", (e) => { if (e.key === "Escape" && openMenu) { const b = openMenu[0]; close(); b.focus(); } });
     // 交通视图开关、换语言时刷新按钮文字
     new MutationObserver(drawTrBtn).observe(document.body, { attributes: true, attributeFilter: ["class"] });
     document.addEventListener("tr:group", drawTrBtn);   // 卡片里切 tab 时同步按钮
     lb.addEventListener("click", () => { drawLayBtn(); drawTrBtn(); if (openMenu) (openMenu[1] === layMenu ? drawLay : drawTr)(); });
     drawLayBtn(); drawTrBtn();
-    // 手机第 2 层：交通 3 个图标（取代「交通」下拉）；点一下打开该组路线，再点一下收起
-    const trIcons = document.getElementById("trIcons");
-    trIcons.innerHTML = TR.groups.map((g) => `<button type="button" class="trb" data-g="${g.id}" aria-pressed="false">${GICON[g.id]}</button>`).join("");
-    const drawIcons = () => trIcons.querySelectorAll(".trb").forEach((b) => { const g = TR.groups.find((x) => x.id === b.dataset.g); b.setAttribute("aria-pressed", String(!!trView && trGroup === g.id)); b.setAttribute("aria-label", short(g)); b.title = tz(g); });
-    trIcons.querySelectorAll(".trb").forEach((b) => (b.onclick = () => { if (trView && trGroup === b.dataset.g) document.getElementById("close").click(); else trOpen(b.dataset.g); drawIcons(); }));
-    new MutationObserver(drawIcons).observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    document.addEventListener("tr:group", drawIcons);
-    lb.addEventListener("click", drawIcons);
-    drawIcons();
     window.__picker = { lay: () => toggle(pkLay, layMenu, drawLay), tr: () => toggle(pkTr, trMenu, drawTr), pick: (g) => { close(); trOpen(g); } };   // 截图验证用
   }
   window.__transit = { open: trOpen, show: (v) => { trOpen(); if (v !== "list") trRender(v); }, level: (n) => setLevel(n) };   // 截图验证用
@@ -3610,7 +3852,7 @@ const _renderViews = renderViews;
 renderViews = function () {
   _renderViews.apply(this, arguments);
   const v = document.getElementById("views"); if (v && !v.querySelector("[data-mo]")) { const d = document.createElement("span"); d.className = "div"; d.setAttribute("aria-hidden", "true"); v.append(d, entryBtn("seg")); }
-  const nb = document.getElementById("navBtn"); if (nb && !nb.parentNode.querySelector("[data-mo]")) nb.after(entryBtn("mo-wide"));
+  const nb = document.getElementById("navBtn"); if (nb && !nb.parentNode.querySelector("[data-mo]")) { const r1 = document.getElementById("mrow1"); if (r1) r1.prepend(entryBtn("mo-wide")); else nb.after(entryBtn("mo-wide")); }   // 手机：和 1x / 2x / 3x 同一行
 };
 renderViews();
 const _select = select;

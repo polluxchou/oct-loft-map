@@ -4044,12 +4044,26 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   document.getElementById("langBtn").addEventListener("click", () => { if (!ov.hidden) { drawTop(); drawCard(); drawMap(); } });
   // ---- 发给酒店的开场白（pollux 2026-11-24：「在住宿优惠的信息里面mock一段文字，站在用户的角度给酒店介绍自己是 mushenzhen 的参与人，希望享受对应的入住优惠，然后给一个一键复制的功能」）
   // 酒店前台多半看中文，所以话术固定用中文；英文界面另给一行英文说明。日期、姓名留空让用户自己填（示意，不收集任何资料）
-  const wkMsg = (hotel, disc) => `您好！我是 mushenzhen 2026（11 月 29 日至 12 月 18 日，华侨城创意文化园）的参与者，想预订${hotel}，入住日期：____ 至 ____，共 __ 人。看到活动 Wiki 上写参与者可享受${disc}，请问我可以按这个优惠预订吗？需要提供什么证明，我可以发参与者报名确认截图。谢谢！`;
+  // 入住日期、人数做成选项（pollux：「做成选项，然后复制的时候直接引用对应选项内容」）；默认整段活动 11/29–12/18、1 人；入住日期限活动前后各一周（11/22–12/25，退房到 12/26），人数 1–12（pollux）
+  const fmtD = (v) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? `${+m[2]} 月 ${+m[3]} 日` : "____"; };
+  const nightsOf = (a, b) => { const d = (Date.parse(b) - Date.parse(a)) / 864e5; return d > 0 ? d : 0; };
+  const wkMsg = (hotel, disc, o = {}) => { const n = nightsOf(o.in, o.out); return `您好！我是 mushenzhen 2026（11 月 29 日至 12 月 18 日，华侨城创意文化园）的参与者，想预订${hotel}，${fmtD(o.in)}入住、${fmtD(o.out)}退房${n ? `（共 ${n} 晚）` : ""}，${o.ppl || "__"} 人。看到活动 Wiki 上写参与者可享受${disc}，请问我可以按这个优惠预订吗？需要提供什么证明，我可以发参与者报名确认截图。谢谢！`; };
   const msgBlock = (hotel, disc) => {
-    const m = wkMsg(hotel, disc), en = lang === "en";
-    return `<div class="wk-msg"><div class="wk-msg-h">${en ? "Message to the hotel (sample, in Chinese — fill in dates and number of guests)" : "发给酒店的开场白（示意，日期和人数自己填）"}</div>`
-      + `<p class="wk-msg-t">${esc(m)}</p><button type="button" class="wk-copy" data-wkcopy="${esc(m)}">${en ? "Copy message" : "一键复制"}</button></div>`;
+    const en = lang === "en", o = { in: "2026-11-29", out: "2026-12-18", ppl: 1 }, m = wkMsg(hotel, disc, o);
+    const lab = (zh, e) => (en ? e : zh);
+    return `<div class="wk-msg" data-hotel="${esc(hotel)}" data-disc="${esc(disc)}"><div class="wk-msg-h">${lab("发给酒店的开场白（选好日期和人数，复制时一并带上）", "Message to the hotel — pick dates and guests; the copy includes them (message is in Chinese)")}</div>`
+      + `<div class="wk-opt"><label>${lab("入住", "Check-in")}<input type="date" name="in" value="${o.in}" min="2026-11-22" max="2026-12-25"></label>`
+      + `<label>${lab("退房", "Check-out")}<input type="date" name="out" value="${o.out}" min="2026-11-23" max="2026-12-26"></label>`
+      + `<label>${lab("人数", "Guests")}<select name="ppl">${Array.from({ length: 12 }, (_, i) => i + 1).map((k) => `<option value="${k}"${k === o.ppl ? " selected" : ""}>${k}</option>`).join("")}</select></label></div>`
+      + `<p class="wk-msg-t">${esc(m)}</p><p class="wk-msg-w" hidden></p><button type="button" class="wk-copy" data-wkcopy="${esc(m)}">${lab("一键复制", "Copy message")}</button></div>`;
   };
+  document.addEventListener("input", (e) => {
+    const box = e.target.closest?.(".wk-msg"); if (!box) return;
+    const v = (n) => box.querySelector(`[name=${n}]`).value, o = { in: v("in"), out: v("out"), ppl: v("ppl") };
+    const m = wkMsg(box.dataset.hotel, box.dataset.disc, o), rng = (x, a, b) => !x || (x >= a && x <= b), bad = (o.in && o.out && !nightsOf(o.in, o.out)) || !rng(o.in, "2026-11-22", "2026-12-25") || !rng(o.out, "2026-11-23", "2026-12-26");
+    box.querySelector(".wk-msg-t").textContent = m; box.querySelector(".wk-copy").dataset.wkcopy = m;
+    const w = box.querySelector(".wk-msg-w"); w.hidden = !bad; w.textContent = lang === "en" ? "Check-in 22 Nov–25 Dec; check-out must be after check-in (by 26 Dec)." : "入住限 11/22–12/25，退房要晚于入住、最晚 12/26。";
+  });
   document.addEventListener("click", async (e) => {
     const b = e.target.closest?.("[data-wkcopy]"); if (!b) return;
     const txt = b.dataset.wkcopy, done = lang === "en" ? "Copied" : "已复制", orig = b.textContent;
@@ -4204,11 +4218,13 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   .wkc-back { min-height:44px; padding:0 8px; border:none; background:none; color:var(--ink); font:inherit; font-size:15px; cursor:pointer; white-space:nowrap; justify-self:start; }
   .wkc-back:focus-visible, .wkc-chip:focus-visible, .wkc-card a:focus-visible, .wkc-photo a:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   .wkc-h { display:flex; flex-direction:column; align-items:center; text-align:center; min-width:0; } .wkc-h b { font-size:16px; font-weight:650; } .wkc-h small { color:var(--muted); font-size:12px; }
-  .wkc-chips { display:flex; gap:20px; padding:0 16px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--line); background:var(--surface); }
-  .wkc-chip { flex:none; display:flex; align-items:center; gap:6px; min-height:44px; padding:0; border:none; border-bottom:2px solid transparent; background:none; color:var(--muted); font:inherit; font-size:14px; cursor:pointer; }
+  .wkc-chips { display:flex; gap:6px; padding:8px 12px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--line); background:var(--surface); }
+  .wkc-chip { flex:none; display:flex; align-items:center; gap:6px; min-height:44px; padding:0 12px; border:none; border-radius:8px; background:none; color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
+  .wkc-chip:hover { background:var(--soft); }
   .wkc-chip i { width:7px; height:7px; border-radius:50%; } .wkc-chip.visit i { background:${WK_VISIT}; } .wkc-chip.stay i { background:${WK_STAY}; }
-  .wkc-chip span { font-size:12px; font-variant-numeric:tabular-nums; }
-  .wkc-chip[aria-selected="true"] { color:var(--ink); font-weight:650; border-bottom-color:var(--brand); }
+  .wkc-chip span { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .wkc-chip[aria-selected="true"] { background:var(--accent); font-weight:650; }   /* 选中用地图的主题色 lime，和底部「等距」「1x」的选中一致（pollux 2026-11-24） */
+  .wkc-chip[aria-selected="true"] span { color:var(--ink); }
   .wkc-card { position:fixed; left:16px; bottom:16px; width:340px; max-height:calc(100vh - 160px); overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px 18px 18px; }
   .wkc-card .eb { font-size:12px; color:var(--muted); }
   .wkc-card h2 { margin:4px 0 4px; font-size:25px; line-height:1.25; font-weight:650; }
@@ -4230,11 +4246,17 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   .wk-msg { margin-top:12px; background:var(--soft); border-radius:10px; padding:12px 14px; }
   .wk-msg-h { font-size:12px; color:var(--muted); margin-bottom:6px; }
   .wk-msg-t { margin:0 0 10px !important; font-size:14px !important; line-height:1.6 !important; color:var(--ink); user-select:text; }
+  .wk-opt { display:flex; flex-wrap:wrap; gap:8px 10px; margin:2px 0 10px; }
+  .wk-opt label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); flex:1 1 120px; }
+  .wk-opt label:last-child { flex:0 0 72px; }
+  .wk-opt input, .wk-opt select { min-height:44px; box-sizing:border-box; width:100%; padding:0 10px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; font-size:16px; font-variant-numeric:tabular-nums; }
+  .wk-opt input:focus-visible, .wk-opt select:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
+  .wk-msg-w { margin:-4px 0 8px !important; font-size:13px !important; color:#b3261e; }
   .wk-copy { min-height:44px; padding:0 16px; border:1px solid #b9b1aa; border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; font-size:14px; cursor:pointer; }
   .wk-copy.ok { border-color:#829700; } .wk-copy:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   .wkc-thumb { flex:none; width:72px; margin:0; } .wkc-thumb img { width:72px; height:72px; object-fit:cover; border-radius:10px; display:block; }
   .wkc-cr { font-size:12px; color:var(--muted); margin-top:6px; }
-  @media (max-width:640px) { .wkc-h small { display:none; } .wkc-chips { padding:0 12px; gap:18px; } .wkc-card { left:8px; right:8px; bottom:8px; width:auto; max-height:40vh; padding:14px 16px 16px; } .wkc-card h2 { font-size:22px; } }
+  @media (max-width:640px) { .wkc-h small { display:none; } .wkc-chips { padding:6px 8px; gap:4px; } .wkc-card { left:8px; right:8px; bottom:8px; width:auto; max-height:40vh; padding:14px 16px 16px; } .wkc-card h2 { font-size:22px; } }
   .wk-ln { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 5px; border-radius:4px; color:#fff; font-size:12px; font-weight:700; vertical-align:1px; }
   .wk-c { font-size:11px; font-weight:650; margin-left:4px; } .wk-c.stay { color:${WK_STAY}; } .wk-c.visit { color:${WK_VISIT}; }`;
   document.head.appendChild(st);

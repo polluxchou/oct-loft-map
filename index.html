@@ -59,10 +59,9 @@
   .legend .seg[aria-pressed="true"] { background:var(--surface); color:var(--ink); box-shadow:inset 0 0 0 1px var(--segline); }
   .legend .seg.icon { width:44px; height:44px; min-height:44px; padding:0; justify-content:center; }
   .legend .seg.icon svg { display:block; }
-  .legend .seg[aria-pressed="false"]:not(.emph-btn) svg { opacity:.3; }
+  .legend .seg[aria-pressed="false"] svg { opacity:.3; }
   /* 「强调园区楼栋」：未按下是普通白底；按下用品牌棕（参考项目第二主题色）实心强化 */
-  .legend .seg.emph-btn { background:var(--surface); color:var(--ink); box-shadow:inset 0 0 0 1px var(--segline); }
-  .legend .seg.emph-btn[aria-pressed="true"] { background:var(--brand); color:#fff; box-shadow:none; }
+  .legend .seg.emph-btn { color:var(--brand); }   /* 「强调园区楼栋」：选中 / 未选中和其他图层同一套（白底细框 / 浅底淡图标），不再用品牌棕实心（pollux 2026-11-24）；图标保留品牌棕 */
   body.emph .lb.loft { background:var(--brand); color:#fff; text-shadow:none; border-radius:4px; padding:0 5px; }
   body.emph .lb.loft.sel { background:var(--accent); color:var(--ink); }
   .legend { flex-wrap:nowrap; justify-content:space-between; }
@@ -331,9 +330,8 @@
     .pkmenu .row .nm small { display:block; font-size:12px; color:var(--muted); }
     .pkmenu .ck { flex:none; width:22px; height:22px; border-radius:6px; border:1.5px solid var(--segline); display:grid; place-items:center; color:transparent; }
     .pkmenu .row[aria-checked="true"] .ck { background:var(--ink); border-color:var(--ink); color:#fff; }
-    .pkmenu .row.emph[aria-checked="true"] .ck { background:var(--brand); border-color:var(--brand); }
-    .pkmenu .row[aria-checked="false"]:not(.emph) { color:var(--muted); }
-    .pkmenu .row[aria-checked="false"]:not(.emph) > svg:first-child { opacity:.35; }
+    .pkmenu .row[aria-checked="false"] { color:var(--muted); }   /* 「强调园区楼栋」和其他图层同一套选中样式（pollux 2026-11-24） */
+    .pkmenu .row[aria-checked="false"] > svg:first-child { opacity:.35; }
     .pkmenu .row .go { flex:none; color:var(--muted); font-size:18px; }
     .pkmenu .row[aria-current="true"] { background:var(--accent); }
     body.help-open #mpick .pkw { visibility:hidden; }
@@ -403,7 +401,7 @@
     #hbar .vd { order:1; flex:none; width:1px; align-self:stretch; margin:8px 3px; background:var(--segline); }
     #hbar .trg { order:2; display:flex; flex:3 1 0; }
     #hbar .legend .seg.icon { flex:1 1 0; width:auto; min-width:0; height:44px; border-radius:7px; }   /* 9 个图标一行放不下 44 宽：38×44，相邻无缝，整条都能点中 */
-    #hbar .legend .seg[aria-pressed="true"]:not(.emph-btn) { box-shadow:none; }
+    #hbar .legend .seg[aria-pressed="true"] { box-shadow:none; }
     #hbar .legend .seg[aria-pressed="false"] { background:none; }
     #hbar .trb { flex:1 1 0; height:44px; border:none; background:none; border-radius:7px; display:grid; place-items:center; color:var(--ink); padding:0; cursor:pointer; }
     #hbar .trb[aria-pressed="true"] { background:var(--accent); }
@@ -1237,6 +1235,7 @@ function setEmphasis(on) {
   matCtx.opacity = on ? 0.1 : 0.2;                       // 周边楼退后
   document.body.classList.toggle("emph", on);
 }
+setEmphasis(true); legend.querySelector(".emph-btn").setAttribute("aria-pressed", "true");   // 默认强调园区楼栋（pollux 2026-11-24 截图定的默认状态）
 
 // 点选
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
@@ -3775,6 +3774,310 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   loftAt: (n) => { const b = LOFTS.find((x) => x.name === n); return b ? b.ring.reduce((s, q) => [s[0] + q[0] / b.ring.length, s[1] + q[1] / b.ring.length], [0, 0]) : null; },
   // 测试用：前方路口要按哪个方向才会沿最短路走（0 直行 / -1 左 / 1 右；null = 前面没有路口或怎么按都不对）
   wantIntent() { const j = nextJunction(ST.a, ST.b, ST.s, 200); if (!j) return null; const r = dijkstra(j.b, MS.goals); if (!r || r.path.length < 2) return null; const v = r.path[1]; for (const it of [0, -1, 1]) if (pickExit(j.a, j.b, it).v === v) return it; return null; } };
+}
+
+// ---------- muShenzhen Wiki 推荐：住宿 / 参观（wiki-candidates 会话，2026-11-24） ----------
+// pollux：「按照园区和不在园区，然后区分两类建筑，先不用追求细致建模，按照网上能找到的建筑模型粗略建个模型放在地图里面即可」
+// - 两类：住宿（蓝）/ 参观（橙），各自一套颜色、标签和卡片
+// - 模型范围内（园区内 + 园区边上）的住宿：在 OSM 体量上做粗模（按层分隔线 + 屋顶招牌），挂标签，点开是原楼卡 + 「合作住宿」一节
+// - 模型范围外（5–25 km）：照 WeWork 的做法放方位标（画面里钉在原位，出了画面贴边、箭头指向它），点开是这一组的卡片
+// 资料：muShenzhen 2026 Wiki（themucommunity.notion.site，英文版 2026-10-24），只摘地点和要点、不放价格和个人联络方式；
+//       位置：OSM（2026-11-24 Overpass）；松岩酒店 OSM 无名，用携程坐标（GCJ-02 换算 WGS-84）落在 OSM「华里酒店」那栋，≈
+// 本段拼在 sponsor.js / moto.js 之后、同一个作用域；接法同 sponsor.js：包一层 select、placeWework，不改 main.js 原函数体
+{
+  const WK_STAY = "#2b5d9b", WK_VISIT = "#b8621b";
+  const WIKI_URL = "https://themucommunity.notion.site/muShenzhen-2026-Wiki-3f5548389af381549639e899a02d1ae0";
+  Object.assign(I18N.zh, {
+    lay_stay: "住：Wiki 推荐住宿", lay_visit: "玩：Wiki 推荐参观", wkStay: "住宿", wkVisit: "参观", wkPartner: "muShenzhen 合作住宿", wkIn: "园区内", wkOut: "园区外",
+    wkSrc: "来源", wkSrcTx: "（2026-10-24 英文版）；位置取 OpenStreetMap，≈ 为估算", wkFrom: "距 C2 直线", wkHow: "怎么去 / 提示",
+    wkOsm: (n) => `OSM 楼名：${n}`, wkMapNote: "城市简图：OCT-LOFT 缩成一个点，看各地点在哪个方向、多远。点图上的地名切换。", wkMapAria: "深圳城市简图：OCT-LOFT 与 Wiki 推荐地点的相对位置", wkDisc: "参与者优惠", wkBook: "预订方式按 Wiki：自己联系酒店、说明是 muShenzhen 参与者、到店付款。价格和折扣以 Wiki 最新版为准。",
+  });
+  Object.assign(I18N.en, {
+    lay_stay: "Stay: Wiki partner hotels", lay_visit: "Visit: Wiki picks to explore", wkStay: "Stay", wkVisit: "Visit", wkPartner: "muShenzhen partner stay", wkIn: "In the park", wkOut: "Outside the park",
+    wkSrc: "Source", wkSrcTx: " (English edition, 24 Oct 2026); locations from OpenStreetMap, ≈ = estimated", wkFrom: "straight-line from C2", wkHow: "Getting there / tips",
+    wkOsm: (n) => `OSM building name: ${n}`, wkMapNote: "City sketch: OCT-LOFT shrinks to one point, so you can see which way and how far each place is. Tap a name on the map to switch.", wkMapAria: "Shenzhen sketch map: OCT-LOFT and the Wiki picks", wkDisc: "Participant benefit", wkBook: "Per the Wiki: contact the hotel yourself, say you're a muShenzhen participant and pay at the hotel. Check the latest Wiki for prices and discounts.",
+  });
+  const O = D.origin, KX = Math.cos(O.lat * Math.PI / 180) * 111320;
+  const XY = (la, lo) => [(lo - O.lon) * KX, -(la - O.lat) * 110950];
+  const C2C = centroid(D.navTarget.ring);
+  const DIRS = { zh: ["正北", "东北", "正东", "东南", "正南", "西南", "正西", "西北"], en: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"] };
+  const geo = (p) => { const dx = p[0] - C2C[0], dz = p[1] - C2C[1]; const deg = (Math.atan2(dx, -dz) * 180 / Math.PI + 360) % 360; return { km: Math.hypot(dx, dz) / 1000, dir: Math.round(deg / 45) % 8 }; };
+
+  // ---------- 1. 模型范围内的住宿：OSM 楼 + 粗模 ----------
+  const HOTELS = [
+    { id: 532810260, at: "in", zh: "嘉途酒店", en: "Jiatu Hotel", lb: { zh: "嘉途", en: "Jiatu" }, full: { zh: "深圳华侨城创意文化园嘉途酒店（B1 栋）", en: "Jiatu Hotel, OCT-LOFT (Building B1)" },
+      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, note: { zh: "携程地址：锦绣北街 2 号华侨城创意文化园 B1 栋；2025 年 1 月试业", en: "Ctrip address: Building B1, OCT-LOFT, 2 Jinxiu North St; soft-opened Jan 2025" } },
+    { id: 532810264, at: "in", zh: "YHA 侨城旅友青年旅舍", en: "YHA Qiaocheng Youth Hostel", lb: { zh: "YHA 青旅", en: "YHA" }, full: { zh: "侨城旅友国际青年旅舍（YHA，华侨城创意园店）", en: "YHA Qiaocheng Lvyou International Youth Hostel (OCT-LOFT)" },
+      disc: { zh: "适用房价 9 折", en: "10% off the applicable rate" }, note: { zh: "香山东街 7 号（OSM 标在恩平南街 3 栋）", en: "7 Xiangshan East St (OSM places it in Enping South St Bldg 3)" } },
+    { id: 532810287, at: "in", zh: "玺程设计酒店", en: "Xicheng Hotel", lb: { zh: "玺程", en: "Xicheng" }, full: { zh: "玺程设计酒店（Wiki 写 Xicheng Hotel）", en: "Xicheng Design Hotel (listed as Xicheng Hotel in the Wiki)" },
+      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, note: { zh: "C2 东侧隔一条路", en: "Just east of C2, across the lane" } },
+    { id: 532810324, at: "out", est: true, zh: "松岩酒店", en: "Songyan Hotel", lb: { zh: "松岩", en: "Songyan" }, full: { zh: "松岩酒店（深圳华侨城侨城东地铁站店）", en: "Songyan / Base Hotel (OCT Qiaocheng East Metro Station)" },
+      disc: { zh: "按房型 15–20% off", en: "15–20% off, depending on room type" }, note: { zh: "≈ 位置按携程坐标换算，落在 OSM「华里酒店」楼（可能是改名前的名字）；离侨城东站约 800 m", en: "≈ Position converted from Ctrip coordinates; lands on the OSM building named 华里酒店 (likely its former name); about 800 m from Qiaocheng East Station" } },
+  ];
+  const hotelOf = new Map();
+  const matStay = new THREE.MeshLambertMaterial({ color: 0xdbe6f3, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+  const edgeStay = new THREE.LineBasicMaterial({ color: WK_STAY });
+  const bandMat = new THREE.LineBasicMaterial({ color: WK_STAY, transparent: true, opacity: 0.45 });
+  const signMat = new THREE.MeshLambertMaterial({ color: WK_STAY });
+  for (const H of HOTELS) {
+    const m = pickables.find((o) => o.userData.kind === "building" && o.userData.b?.id === H.id && !o.userData.proxy);
+    if (!m) continue;
+    const b = m.userData.b; hotelOf.set(b, H);
+    if (!b.loft) { H.osmName = b.name; b.name = H.zh; b.nameEn = H.en; }   // 卡片标题、导航起终点都用酒店名（编号楼 B1 保留楼号）
+    if (m.parent !== layer("fixed")) { m.parent.remove(m); layer("wikiBase").add(m); if (m.userData.edges) { m.userData.edges.parent.remove(m.userData.edges); layer("wikiBase").add(m.userData.edges); } }   // 周边楼不随「周边楼」开关消失
+    H.m = m; H.orig = { mat: m.userData.base, edge: m.userData.baseEdge || null, shadow: m.castShadow };
+    m.material = m.userData.base = matStay; m.castShadow = m.receiveShadow = true;
+    if (m.userData.edges) m.userData.edges.material = m.userData.baseEdge = edgeStay;
+    else { const ed = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 30), edgeStay); m.userData.edges = ed; m.userData.baseEdge = edgeStay; layer("wikiStay").add(ed); H.ownEdge = true; }
+    // 粗模：每 3.2 m 一道层线（客房楼的横向窗带）+ 屋顶一块蓝色招牌
+    const pts = [];
+    for (let y = 3.2; y < b.h - 0.5; y += 3.2) for (let i = 0; i < b.ring.length; i++) { const a = b.ring[i], c = b.ring[(i + 1) % b.ring.length]; pts.push(new THREE.Vector3(a[0], y, a[1]), new THREE.Vector3(c[0], y, c[1])); }
+    layer("wikiStay").add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), bandMat));
+    const c = centroid(b.ring);
+    // 招牌沿楼的长边摆
+    let L = 0, ang = 0; for (let i = 0; i < b.ring.length; i++) { const a = b.ring[i], q = b.ring[(i + 1) % b.ring.length], l = Math.hypot(q[0] - a[0], q[1] - a[1]); if (l > L) { L = l; ang = Math.atan2(q[1] - a[1], q[0] - a[0]); } }
+    const sign = new THREE.Mesh(new THREE.BoxGeometry(Math.min(16, L * 0.5), 4.5, 1.2), signMat);
+    sign.position.set(c[0] + Math.cos(ang) * L * 0.28, b.h + 2.25, c[1] + Math.sin(ang) * L * 0.28);   // 偏到屋顶一端，不压楼号
+    sign.rotation.y = -ang; sign.castShadow = true; layer("wikiStay").add(sign);
+    labels.push({ el: mk("wk stay", { zh: `住 · ${H.lb.zh}`, en: `Stay · ${H.lb.en}` }, m), pos: new THREE.Vector3(c[0], b.h + 8, c[1]), layer: "wiki", cat: "stay" });
+  }
+
+  // ---------- 2. 模型范围外：方位标 ----------
+  // p = [lat, lon]（WGS-84，OSM）；est = 位置估算
+  const FAR = [
+    { g: "hqb", cat: "visit", name: { zh: "华强北", en: "Huaqiangbei" }, items: [
+      { p: [22.5441, 114.0823], zh: ["赛格广场 / 赛格电子市场", "电子元器件、模块、工具；白天去，按要逛的楼选地铁口"], en: ["SEG Plaza / SEG Electronics Market", "Components, modules and tools; go in the daytime and pick the metro exit for your building"] },
+      { p: [22.5442, 114.0810], zh: ["华强电子世界", "同一片硬件市场，预留 2–3 小时"], en: ["Huaqiang Electronics World", "Same hardware district; allow 2–3 hours"] },
+      { p: [22.5470, 114.0852], est: true, zh: ["华强北博物馆", "华强北路 1058 号广博现代之窗大厦 5 楼；免费，公众号预约，周一闭馆"], en: ["Huaqiangbei Museum", "5F, 1058 Huaqiangbei Rd; free, book via its WeChat account; closed Mondays"] },
+    ] },
+    { g: "civic", cat: "visit", name: { zh: "市民中心", en: "Civic Center" }, items: [
+      { p: [22.5463, 114.0545], zh: ["深圳工业博物馆", "市民中心 B 区黄塔 2–10 楼；个人凭证件登记，周一闭馆"], en: ["Shenzhen Industrial Museum", "Floors 2–10, Block B yellow tower; register with ID; closed Mondays"] },
+      { p: [22.5410, 114.0552], zh: ["福田 CBD 灯光秀", "市民中心广场；活动期间场次未公布，以公告为准"], en: ["Futian CBD light show", "Civic Center Square; no show dates announced for the programme — check notices"] },
+    ] },
+    { g: "nantou", cat: "visit", name: { zh: "南头古城", en: "Nantou City" }, items: [
+      { p: [22.5463, 113.9160], zh: ["南头古城 City walk", "地铁 12 号线南头古城站；预留 1.5–2 小时"], en: ["Nantou City walk", "Metro Line 12, Nantou Ancient City Station; allow 1.5–2 hours"] },
+    ] },
+    { g: "talent", cat: "visit", name: { zh: "人才公园", en: "Talent Park" }, items: [
+      { p: [22.5137, 113.9436], zh: ["美团无人机外送野餐", "在公园取餐柜下单取餐；取餐点会变，以 App 为准；福田中心公园是备选"], en: ["Meituan drone-delivered picnic", "Order to the park pickup locker; pickup points change — follow the app; Futian Central Park is an alternative"] },
+    ] },
+    { g: "scimus", cat: "visit", name: { zh: "深圳科技馆", en: "S&T Museum" }, items: [
+      { p: [22.7560, 113.9330], est: true, zh: ["深圳科技馆（光明）", "光明区光辉大道 8 号，地铁 6 号线光明站；小程序预约，预留半天"], en: ["Shenzhen Science & Technology Museum (Guangming)", "8 Guanghui Ave; Metro Line 6, Guangming Station; book via mini programme; allow half a day"] },
+    ] },
+    { g: "tiaohai", cat: "stay", name: { zh: "跳海 Living", en: "Tiaohai Living" }, items: [
+      { p: [22.5452, 113.9168], est: true, zh: ["跳海 Living（南头古城）", "合作住宿：房价 75 折，楼下酒吧饮品 85 折（以 Wiki 为准）"], en: ["Tiaohai Living (Nantou City)", "Partner stay: 25% off rooms, 15% off drinks at the bar downstairs (per the Wiki)"] },
+    ] },
+  ];
+  for (const g of FAR) {
+    for (const it of g.items) { it.xy = XY(...it.p); Object.assign(it, geo(it.xy)); }
+    g.items.sort((a, b) => a.km - b.km);
+    const n = g.items[0];
+    // 方向点：沿 C2 → 最近一处的方向，最远取 3 km（20 km 外的点超出相机远裁面 8000 m，投影会翻到背面、箭头指反）
+    const dx = n.xy[0] - C2C[0], dz = n.xy[1] - C2C[1], d = Math.hypot(dx, dz), k = Math.min(1, 3000 / d);
+    g.p = new THREE.Vector3(C2C[0] + dx * k, 0, C2C[1] + dz * k);
+    g.obj = { userData: { kind: "wiki", g } };
+    g.el = document.createElement("button"); g.el.type = "button"; g.el.className = `wkm ${g.cat}`;   // 不借 .ww：WeWork / 礼物口袋的逻辑和验证都按 .ww 认 WeWork 方位标
+    g.el.innerHTML = `<span class="ar" aria-hidden="true">➜</span><span class="ct"></span><span class="tx"></span>`;
+    g.el.onclick = () => select(g.obj);
+    document.getElementById("labels").appendChild(g.el);
+  }
+  const kmTx = (it) => `${it.est ? "≈" : ""}${it.km.toFixed(1)} km`;
+  // ---------- 城市简图卡（pollux 2026-11-24 选 A：卡片式，3D 降到 30% 当背景）----------
+  // 「在展示较远的可以去的地点的时候，建议用更简约的城市地图，然后标记几个重要的位置和 OCT 的相对关系（OCT 缩小为一个统一的坐标点）」
+  // 底图：OSM 深圳 9 个区的行政边界（2026-11-24 Overpass，Douglas-Peucker 250 m 简化；单位 10 m，原点同 3D 地图）；不含深汕
+  const SZ_D = [{"zh":"坪山区","en":"Pingshan","r":[[[4292,-1904],[4219,-2053],[4337,-2196],[4335,-2371],[4401,-2390],[4371,-2431],[4424,-2457],[4387,-2462],[4299,-2652],[4236,-2690],[4184,-2666],[4138,-2467],[4072,-2424],[3855,-2531],[3779,-2497],[3705,-2541],[3614,-2447],[3621,-2393],[3559,-2296],[3596,-2256],[3570,-2164],[3426,-1984],[3488,-1914],[3448,-1839],[3385,-1815],[3399,-1772],[3330,-1640],[3244,-1629],[3241,-1572],[3190,-1575],[3181,-1601],[3072,-1535],[3011,-1542],[2974,-1491],[2890,-1492],[2823,-1375],[2908,-1193],[3012,-1126],[3108,-1120],[3130,-1055],[3293,-950],[3448,-934],[3520,-968],[3563,-938],[3610,-1028],[3674,-1031],[3680,-981],[3817,-926],[3851,-1037],[3923,-1025],[3889,-1131],[3931,-1165],[4073,-1082],[4077,-1140],[4513,-1349],[4475,-1523],[4611,-1583],[4647,-1706],[4543,-1792],[4467,-1774],[4395,-1942],[4292,-1904]]]},{"zh":"盐田区","en":"Yantian","r":[[[3580,-295],[2961,-266],[2561,-102],[2526,-24],[2451,-24],[2429,-105],[2364,-161],[2302,-158],[2166,-168],[2209,-235],[2168,-342],[2341,-430],[2328,-470],[2432,-571],[2497,-714],[2488,-780],[2553,-852],[2641,-904],[2802,-922],[2809,-996],[2736,-1060],[2730,-1127],[2759,-1214],[2850,-1277],[2965,-1147],[3108,-1120],[3130,-1055],[3293,-950],[3448,-934],[3520,-968],[3563,-938],[3601,-882],[3545,-714],[3675,-710],[3735,-285],[3580,-295]]]},{"zh":"宝安区","en":"Bao'an","r":[[[-1562,-3271],[-1628,-3149],[-1571,-3008],[-1602,-2911],[-1707,-2817],[-1830,-2808],[-1868,-2709],[-1976,-2723],[-1966,-2647],[-2065,-2563],[-2048,-2442],[-2101,-2360],[-2254,-2285],[-2448,-2086],[-2856,-2058],[-3161,-1959],[-2803,-1492],[-2600,-750],[-2480,-625],[-2713,-149],[-2631,99],[-1554,103],[-1317,233],[-1224,180],[-1069,-11],[-994,-29],[-791,-207],[-790,-304],[-677,-402],[-656,-480],[-703,-566],[-662,-586],[-713,-681],[-647,-771],[-657,-1036],[-535,-1215],[-435,-1244],[-266,-1242],[-205,-1314],[-200,-1397],[-258,-1488],[-238,-1551],[-184,-1570],[-156,-1928],[-226,-1896],[-368,-1995],[-554,-1884],[-528,-1853],[-573,-1833],[-788,-1913],[-816,-1852],[-889,-1846],[-896,-1675],[-970,-1705],[-1012,-1660],[-1118,-1675],[-1160,-1631],[-1235,-1715],[-1206,-1761],[-1242,-1825],[-1235,-1923],[-1180,-1969],[-1232,-2101],[-1150,-2213],[-1229,-2402],[-1349,-2548],[-1334,-2658],[-1377,-2709],[-1378,-2761],[-1151,-2873],[-1078,-3076],[-1099,-3120],[-1026,-3142],[-910,-3260],[-938,-3352],[-786,-3325],[-755,-3284],[-721,-3287],[-773,-3322],[-759,-3356],[-599,-3357],[-728,-3382],[-815,-3320],[-807,-3365],[-811,-3337],[-907,-3346],[-902,-3401],[-951,-3413],[-975,-3376],[-1045,-3491],[-995,-3480],[-944,-3527],[-1009,-3503],[-1066,-3538],[-1047,-3583],[-1102,-3552],[-1071,-3514],[-1110,-3513],[-1119,-3466],[-1179,-3511],[-1220,-3392],[-1257,-3403],[-1237,-3310],[-1397,-3262],[-1458,-3316],[-1562,-3271]]]},{"zh":"龙岗区","en":"Longgang","r":[[[1907,-1276],[1840,-1288],[1841,-1327],[1820,-1299],[1818,-1344],[1775,-1319],[1796,-1375],[1727,-1309],[1725,-1402],[1686,-1367],[1709,-1425],[1650,-1354],[1672,-1446],[1760,-1405],[1803,-1565],[1632,-1679],[1614,-1779],[1559,-1807],[1553,-1940],[1484,-1971],[1462,-1922],[1402,-1974],[1341,-1957],[1279,-2046],[1204,-1980],[1149,-1847],[1086,-1841],[1032,-1779],[1065,-1696],[1130,-1667],[1056,-1612],[1106,-1475],[1018,-1355],[961,-1344],[862,-1512],[822,-1487],[778,-1514],[685,-1395],[636,-1410],[630,-1121],[662,-1080],[606,-1065],[624,-995],[595,-978],[676,-868],[675,-711],[808,-598],[906,-687],[1029,-683],[1165,-544],[1273,-579],[1413,-531],[1564,-578],[1618,-672],[1718,-690],[1737,-738],[1901,-846],[2053,-857],[2135,-774],[2120,-710],[2275,-670],[2328,-470],[2387,-506],[2497,-714],[2488,-780],[2553,-852],[2641,-904],[2802,-922],[2809,-996],[2736,-1060],[2730,-1127],[2759,-1214],[2850,-1277],[2823,-1375],[2890,-1492],[2974,-1491],[3011,-1542],[3072,-1535],[3181,-1601],[3241,-1572],[3244,-1629],[3330,-1640],[3399,-1772],[3385,-1815],[3448,-1839],[3488,-1914],[3426,-1984],[3570,-2164],[3596,-2256],[3559,-2296],[3621,-2393],[3614,-2447],[3737,-2538],[3717,-2655],[3625,-2664],[3599,-2720],[3688,-2787],[3672,-2888],[3708,-2972],[3653,-2999],[3476,-3001],[3435,-2955],[3354,-2977],[3305,-2903],[3251,-2939],[3137,-2923],[3075,-2993],[3005,-2989],[2799,-2727],[2667,-2691],[2600,-2798],[2484,-2824],[2418,-3049],[2291,-2985],[2208,-2785],[2025,-2740],[1917,-2667],[1922,-2595],[1938,-2636],[2004,-2568],[1948,-2549],[1949,-2508],[2134,-2517],[2127,-2460],[2198,-2428],[2161,-2399],[2172,-2356],[2234,-2353],[2216,-2294],[2292,-2185],[2219,-2115],[2239,-1985],[2093,-1913],[2123,-1730],[2099,-1657],[2037,-1656],[2100,-1593],[1976,-1468],[1999,-1414],[1945,-1383],[1907,-1276]],[[8314,6563],[5856,1393],[5842,1263],[6068,881],[6318,664],[6660,489],[6755,328],[6762,174],[6720,56],[6490,-158],[6365,-419],[6345,-918],[6274,-1267],[6033,-1445],[5417,-1332],[5284,-1437],[5154,-1453],[5030,-1438],[4985,-1376],[4739,-1454],[4700,-1401],[4639,-1394],[4077,-1140],[4073,-1082],[3931,-1165],[3889,-1131],[3923,-1025],[3851,-1037],[3817,-926],[3680,-981],[3674,-1031],[3610,-1028],[3563,-967],[3601,-882],[3545,-714],[3675,-710],[3735,-285],[4585,-227],[4803,-39],[4800,807],[5289,1957],[5289,7990],[8314,6563]]]},{"zh":"福田区","en":"Futian","r":[[[474,393],[687,422],[735,313],[886,245],[929,128],[1045,53],[1154,76],[1142,-317],[1017,-277],[970,-338],[870,-336],[752,-519],[679,-536],[621,-493],[313,-483],[150,-438],[99,-280],[136,-199],[49,-178],[49,72],[-20,193],[110,174],[214,237],[101,323],[246,453],[375,387],[474,393]]]},{"zh":"光明区","en":"Guangming","r":[[[85,-2390],[101,-2493],[25,-2571],[61,-2617],[-20,-2899],[-125,-2917],[-159,-2886],[-183,-2916],[-184,-2870],[-214,-2923],[-150,-2970],[-168,-3008],[-277,-3036],[-291,-3074],[-370,-3054],[-383,-3132],[-566,-3262],[-845,-3233],[-910,-3260],[-1026,-3142],[-1099,-3120],[-1078,-3076],[-1151,-2873],[-1378,-2761],[-1334,-2658],[-1349,-2548],[-1229,-2402],[-1150,-2213],[-1232,-2101],[-1180,-1969],[-1235,-1923],[-1242,-1825],[-1206,-1761],[-1235,-1715],[-1160,-1631],[-1118,-1675],[-1012,-1660],[-970,-1705],[-896,-1675],[-889,-1846],[-816,-1852],[-788,-1913],[-538,-1835],[-554,-1884],[-368,-1995],[-226,-1896],[-177,-1914],[158,-2243],[165,-2300],[85,-2390]]]},{"zh":"龙华区","en":"Longhua","r":[[[85,-2390],[101,-2493],[255,-2458],[352,-2528],[481,-2501],[571,-2586],[610,-2488],[582,-2413],[678,-2386],[727,-2413],[717,-2338],[779,-2333],[840,-2236],[939,-2350],[1018,-2301],[1085,-2310],[1092,-2180],[1151,-2141],[1174,-2044],[1239,-2020],[1149,-1847],[1086,-1841],[1032,-1779],[1065,-1696],[1130,-1667],[1056,-1612],[1106,-1475],[1018,-1355],[961,-1344],[862,-1512],[822,-1487],[778,-1514],[685,-1395],[636,-1410],[630,-1121],[662,-1080],[606,-1065],[624,-995],[595,-978],[676,-868],[675,-711],[808,-598],[722,-524],[656,-530],[610,-474],[313,-483],[342,-574],[305,-689],[195,-758],[97,-960],[5,-971],[-67,-1085],[-201,-1084],[-273,-1137],[-266,-1242],[-197,-1353],[-258,-1488],[-238,-1551],[-184,-1570],[-156,-1928],[158,-2243],[165,-2300],[85,-2390]]]},{"zh":"罗湖区","en":"Luohu","r":[[[1372,51],[1277,132],[1154,76],[1142,-317],[1017,-277],[964,-340],[884,-326],[777,-472],[752,-541],[906,-687],[1030,-682],[1165,-544],[1273,-579],[1413,-531],[1564,-578],[1618,-672],[1718,-690],[1735,-740],[1901,-846],[2053,-857],[2135,-774],[2120,-710],[2275,-670],[2341,-430],[2168,-342],[2209,-235],[2166,-168],[2062,-148],[1984,-140],[1944,-203],[1805,-196],[1782,-227],[1735,-151],[1686,-146],[1650,-4],[1537,-22],[1372,51]]]},{"zh":"南山区","en":"Nanshan","r":[[[-13,216],[110,174],[214,237],[101,323],[246,453],[74,348],[-413,767],[-1222,1250],[-1222,2310],[-1446,2978],[-1532,3038],[-1578,3149],[-1861,2931],[-2214,2991],[-2906,2474],[-2969,1978],[-2944,1849],[-2803,1520],[-2445,1041],[-2450,645],[-2631,99],[-1554,103],[-1317,233],[-1224,180],[-1069,-11],[-994,-29],[-791,-207],[-790,-304],[-654,-460],[-702,-517],[-702,-571],[-662,-584],[-713,-681],[-647,-771],[-673,-851],[-635,-945],[-651,-1055],[-504,-1242],[-445,-1260],[-391,-1227],[-339,-1263],[-266,-1242],[-273,-1137],[-238,-1104],[-67,-1085],[5,-971],[97,-960],[195,-758],[294,-707],[339,-592],[300,-469],[168,-454],[127,-408],[99,-280],[136,-199],[49,-178],[49,72],[8,97],[-13,216]]]}];
+  const LBL = { hqb: "t", civic: "b", nantou: "t", talent: "r", scimus: "r", tiaohai: "b" };   // 地名放在点的哪一边（t 上 / b 下 / l 左 / r 右），华强北和市民中心只隔 2.7 km，一上一下
+  function cityMap(cur) {
+    const O = [C2C[0] / 10, C2C[1] / 10], P = FAR.map((g) => ({ g, x: g.items[0].xy[0] / 10, z: g.items[0].xy[1] / 10 }));
+    // 15 km 以外（光明科技馆）不撑大范围：钉在图边、标方向和距离
+    const near = P.filter((q) => q.g.items[0].km < 15);
+    const xs = [O[0], ...near.map((q) => q.x)], zs = [O[1], ...near.map((q) => q.z)];
+    const x0 = Math.min(...xs) - 450, x1 = Math.max(...xs) + 450, z0 = Math.min(...zs) - 700, z1 = Math.max(...zs) + 450;
+    const W = x1 - x0, k = W / 300;   // 卡片里约 300 px 宽：k = 每 px 多少单位
+    for (const q of P) if (!near.includes(q)) {   // 从 OCT 朝它的方向射到图边内 18 px
+      const vx = q.x - O[0], vz = q.z - O[1], m = 18 * k;
+      const t1 = Math.min(vx ? ((vx > 0 ? x1 - m : x0 + m) - O[0]) / vx : Infinity, vz ? ((vz > 0 ? z1 - m : z0 + m) - O[1]) / vz : Infinity);
+      q.x = O[0] + vx * t1; q.z = O[1] + vz * t1; q.edge = true;
+    }
+    const fs = (px) => (px * k).toFixed(0);
+    const poly = SZ_D.map((d) => d.r.map((r) => `<path class="d" d="M${r.map((p) => p.join(" ")).join("L")}Z"/>`).join("")).join("");
+    const dname = SZ_D.map((d) => { const r = d.r[0]; const c = r.reduce((s, p) => [s[0] + p[0] / r.length, s[1] + p[1] / r.length], [0, 0]); return c[0] > x0 && c[0] < x1 && c[1] > z0 && c[1] < z1 ? `<text class="dn" x="${c[0].toFixed(0)}" y="${c[1].toFixed(0)}" font-size="${fs(11)}">${esc(lang === "en" ? d.en : d.zh.replace(/区$/, ""))}</text>` : ""; }).join("");
+    const lines = P.map((q) => `<line class="ln ${q.g === cur ? "cur" : ""}" x1="${O[0]}" y1="${O[1]}" x2="${q.x.toFixed(0)}" y2="${q.z.toFixed(0)}" stroke-width="${fs(q.g === cur ? 2 : 1)}" stroke-dasharray="${fs(4)} ${fs(3)}"/>`).join("");
+    const pts = P.map((q) => {
+      const on = q.g === cur, r = fs(on ? 6 : 4.5), side = LBL[q.g.g] || "r", off = (on ? 9 : 7) * k;
+      const [tx_, ty, anc] = side === "l" ? [q.x - off, q.z, "end"] : side === "b" ? [q.x, q.z + off + 6 * k, "middle"] : side === "t" ? [q.x, q.z - off - 19 * k, "middle"] : [q.x + off, q.z, "start"];
+      const mark = q.edge ? `<text class="ar" x="${q.x.toFixed(0)}" y="${q.z.toFixed(0)}" text-anchor="middle" dominant-baseline="middle" font-size="${fs(14)}" transform="rotate(${(Math.atan2(q.z - O[1], q.x - O[0]) * 180 / Math.PI + 90).toFixed(0)} ${q.x.toFixed(0)} ${q.z.toFixed(0)})">▲</text>` : `<circle cx="${q.x.toFixed(0)}" cy="${q.z.toFixed(0)}" r="${r}"/>`;
+      return `<g class="pt ${q.g.cat} ${on ? "cur" : ""}" data-g="${q.g.g}" role="button" tabindex="0">${mark}`
+        + `<text x="${tx_.toFixed(0)}" y="${ty.toFixed(0)}" text-anchor="${anc}" dominant-baseline="middle" font-size="${fs(on ? 13 : 12)}">${esc(tx(q.g.name))}</text>`
+        + `<text class="km" x="${tx_.toFixed(0)}" y="${(ty + 13 * k).toFixed(0)}" text-anchor="${anc}" dominant-baseline="middle" font-size="${fs(11)}">${kmTx(q.g.items[0])}</text></g>`;
+    }).join("");
+    const oct = `<g class="oct"><circle cx="${O[0]}" cy="${O[1]}" r="${fs(7)}"/><circle class="dot" cx="${O[0]}" cy="${O[1]}" r="${fs(2.5)}"/><text x="${O[0]}" y="${(O[1] - 12 * k).toFixed(0)}" text-anchor="middle" font-size="${fs(12)}">OCT-LOFT</text></g>`;
+    // 指北针 + 5 km 比例尺
+    const nb = `<g class="nb"><text x="${(x1 - 14 * k).toFixed(0)}" y="${(z0 + 14 * k).toFixed(0)}" text-anchor="middle" font-size="${fs(11)}">N ↑</text>`
+      + `<line x1="${(x0 + 10 * k).toFixed(0)}" y1="${(z1 - 10 * k).toFixed(0)}" x2="${(x0 + 10 * k + 500).toFixed(0)}" y2="${(z1 - 10 * k).toFixed(0)}" stroke-width="${fs(2)}"/><text x="${(x0 + 10 * k).toFixed(0)}" y="${(z1 - 17 * k).toFixed(0)}" font-size="${fs(10)}">5 km</text></g>`;
+    const sw = `<style>.wkmap .d{stroke-width:${fs(1)}} .wkmap .oct circle{stroke-width:${fs(2.5)}} .wkmap .pt text{stroke-width:${fs(3)}} .wkmap .pt.cur circle{stroke-width:${fs(1.5)}}</style>`;
+    return `<svg class="wkmap" viewBox="${x0.toFixed(0)} ${z0.toFixed(0)} ${W.toFixed(0)} ${(z1 - z0).toFixed(0)}" role="img" aria-label="${esc(t("wkMapAria"))}">${sw}<rect x="${x0}" y="${z0}" width="${W}" height="${z1 - z0}" class="sea"/>${poly}${dname}${lines}${oct}${pts}${nb}</svg>`;
+  }
+  function farCard(g) {
+    const en = lang === "en", cat = g.cat === "stay" ? "wkStay" : "wkVisit";
+    const grp = (q) => `<li class="${q === g ? "cur" : ""}"><span class="nm">${esc(tx(q.name))} <span class="wk-c ${q.cat}">${t(q.cat === "stay" ? "wkStay" : "wkVisit")}</span></span>`
+      + q.items.map((it) => { const L = en ? it.en : it.zh; return `<span class="mt">${esc(L[0])} · ${kmTx(it)} · ${DIRS[lang][it.dir]}</span><small>${esc(L[1])}</small>`; }).join("") + `</li>`;
+    const rest = FAR.filter((q) => q !== g && wkOn(q.cat)).sort((a, b) => a.items[0].km - b.items[0].km);
+    return `<div class="eyebrow wk-eb ${g.cat}">Wiki · ${t(cat)} · ${t("wkOut")}</div><h2>${esc(tx(g.name))}</h2>`
+      + `<p class="k">${t("wkMapNote")}</p>${cityMap(g)}`
+      + `<section class="wwb"><ol class="wwl wk-l">${grp(g)}${rest.map(grp).join("")}</ol></section>`
+      + `<section><h3>${t("wkSrc")}</h3><p class="k"><a href="${WIKI_URL}" target="_blank" rel="noopener">muShenzhen 2026 Wiki</a>${t("wkSrcTx")}${en ? "; distances are " : "；距离为"}${t("wkFrom")}${en ? ". Base map: OSM district boundaries, simplified." : "。底图：OSM 区界，已简化。"}</p></section>`;
+  }
+  function hotelSec(H) {
+    return `<section class="wk-sec"><h3>${t("wkPartner")}</h3><p><b>${esc(tx(H.full))}</b></p>`
+      + `<p>${t("wkDisc")}：${esc(tx(H.disc))}</p><p class="k">${esc(tx(H.note))}${H.osmName && H.osmName !== H.zh ? " · " + esc(t("wkOsm", H.osmName)) : ""}</p>`
+      + `<p class="k">${t("wkBook")} <a href="${WIKI_URL}" target="_blank" rel="noopener">Wiki</a></p></section>`;
+  }
+
+  // ---------- 3. 接进 select：酒店楼加一节；方位标开自己的卡 ----------
+  const selWk = select;
+  select = function (o) {
+    selWk.apply(this, arguments);
+    const u = o?.userData;
+    document.body.classList.remove("wkcity");
+    if (!u || panel.style.display === "none") return;
+    if (u.kind === "wiki") {
+      pc.innerHTML = farCard(u.g); document.body.classList.add("wkcity");
+      pc.querySelectorAll(".wkmap .pt").forEach((el) => { const go = () => select(FAR.find((q) => q.g === el.dataset.g).obj); el.onclick = go; el.onkeydown = (e) => { if (e.key === "Enter") go(); }; });
+      return;
+    }
+    if (u.kind === "building" && hotelOf.has(u.b)) {
+      const H = hotelOf.get(u.b), h2 = pc.querySelector("h2");
+      const eb = pc.querySelector(".eyebrow"); if (eb) { eb.textContent = `Wiki · ${t("wkStay")} · ${t(H.at === "in" ? "wkIn" : "wkOut")}`; eb.classList.add("wk-eb", "stay"); }
+      (pc.querySelector(".tags") || h2)?.insertAdjacentHTML("afterend", hotelSec(H));
+    }
+  };
+
+  // ---------- 4. 图层开关：「住」「玩」各一个图标，可单独筛选（pollux 2026-11-24：「住、玩的内容可以单独筛选出来方便找」）----------
+  // 关掉「住」：酒店楼回到原来的白模 / 半透明周边楼样子，层线、招牌、标签、跳海方位标都收起；关掉「玩」：参观方位标收起
+  // 从关到开时，镜头平移到能看见这一类（园区内酒店 → 取景这几栋；只有方位标的「玩」不动镜头，方位标本来就贴在画面边上）
+  const WK_ON = { stay: true, visit: false };   // 默认：住宿开、小旗（参观）关（pollux 2026-11-24 截图定的默认状态）
+  const wkOn = (cat) => WK_ON[cat];
+  function setStay(on) {
+    WK_ON.stay = on; layer("wikiStay").visible = on;
+    for (const H of HOTELS) {
+      if (!H.m) continue;
+      const m = H.m, mat = on ? matStay : H.orig.mat, edge = on ? edgeStay : H.orig.edge;
+      m.userData.base = mat; if (sel !== m) m.material = mat;
+      if (m.userData.edges) { if (H.ownEdge) m.userData.edges.visible = on; else { m.userData.baseEdge = edge; if (sel !== m) m.userData.edges.material = edge; } }
+      m.castShadow = m.receiveShadow = on || H.orig.shadow;
+    }
+  }
+  const ICON_WK = {
+    stay: `<path d="M3 19V7M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11.5" r="1.8"/>`,   // 床
+    visit: `<path d="M5 21V4"/><path d="M5 5h12l-2.5 3.5L17 12H5"/>`,   // 小旗
+  };
+  for (const cat of ["stay", "visit"]) {
+    const btn = document.createElement("button"), col = cat === "stay" ? WK_STAY : WK_VISIT;
+    btn.type = "button"; btn.setAttribute("aria-pressed", String(WK_ON[cat])); btn.className = "seg icon"; btn.dataset.k = cat === "stay" ? "lay_stay" : "lay_visit";
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${ICON_WK[cat]}</svg>`;
+    btn.title = t(btn.dataset.k); btn.setAttribute("aria-label", t(btn.dataset.k));
+    btn.onclick = () => {
+      const on = !WK_ON[cat]; btn.setAttribute("aria-pressed", String(on));
+      if (cat === "stay") {
+        setStay(on);
+        if (on) { const pts = []; for (const H of HOTELS) if (H.m) for (const [x, z] of H.m.userData.b.ring) pts.push(new THREE.Vector3(x, 0, z), new THREE.Vector3(x, H.m.userData.b.h, z)); if (pts.length) { const iso = isoLocked; goTo({ ...frame(pts, iso ? lockDir() : curDir(), iso ? ISO_FOV : baseFov, { rect: safeRect({ withPanel: false }), pad: 40 }), iso }, 600); } }   // 等距下保持等距
+      } else WK_ON.visit = on;
+    };
+    legend.appendChild(btn);
+  }
+
+  // 酒店标签：主循环里先当作隐藏（不进 main 的撞车规则），放完楼号、站名后再就近找空位（屋顶上方 → 两侧 → 下方，不拉长引线）；
+  // 找不到就这一帧不显示，蓝色粗模本身仍在。放好的框并进 lblBoxes，方位标会避开
+  {
+    const WL = labels.filter((L) => L.layer === "wiki");
+    WL.forEach((L) => { L.layer = "wikiSelf"; L.el.style.display = "none"; });
+    const TRY = [[0, 0], [0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, -1], [0, -2], [-2, 0], [2, 0]];   // 最多挪两格，再远就看不出是哪栋楼
+    const tmpL = new THREE.Vector3();
+    const origPL = placeLabels;
+    placeLabels = function () {
+      origPL();
+      const SR = safeRect({ withPanel: false });   // 不进顶栏、底部工具条和署名条
+      for (const L of WL) {
+        const el = L.el;
+        if (!wkOn(L.cat)) { el.style.display = "none"; continue; }
+        tmpL.copy(L.pos).project(camera);
+        if (tmpL.z > 1) { el.style.display = "none"; continue; }
+        const x = (tmpL.x + 1) / 2 * innerWidth, y = (1 - tmpL.y) / 2 * innerHeight;
+        el.style.display = "block"; el.style.left = "-999px";
+        const w = el.offsetWidth, h = el.offsetHeight, sx = w / 2 + 4, sy = h + 4;
+        const box = ([i, j]) => [x + i * sx - w / 2 - 2, y + j * sy - h / 2 - 2, x + i * sx + w / 2 + 2, y + j * sy + h / 2 + 2];
+        const pick = TRY.find((o) => { const q = box(o); return q[0] > SR.left && q[2] < SR.right && q[1] > SR.top && q[3] < SR.bottom - 24 && !lblBoxes.some((r) => !(q[2] < r[0] || q[0] > r[2] || q[3] < r[1] || q[1] > r[3])); });
+        if (!pick) { el.style.display = "none"; continue; }
+        const q = box(pick); el.style.left = (q[0] + q[2]) / 2 + "px"; el.style.top = (q[1] + q[3]) / 2 + "px"; lblBoxes.push(q);
+      }
+    };
+  }
+
+  // ---------- 5. 方位标摆放：照 placeWework 的规则（画面内钉原位、出画贴边、避让标签和其他方位标） ----------
+  const st = document.createElement("style");
+  st.textContent = `
+  .lb.wk { font-size:12px; font-weight:650; padding:1px 6px; border-radius:4px; background:var(--surface); }
+  .lb.wk.stay { color:${WK_STAY}; border:1px solid ${WK_STAY}; }
+  .wkm { position:absolute; transform:translate(-50%,-50%); pointer-events:auto; display:flex; align-items:center; gap:4px; background:var(--surface); border:1px solid; border-radius:4px; padding:1px 6px; font:inherit; font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer; font-variant-numeric:tabular-nums; }
+  .wkm .ar { display:inline-block; transform:rotate(var(--a, 0rad)); font-size:11px; line-height:1; }
+  .wkm:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+  body.picking .wkm { pointer-events:none; }
+  .wkm.stay { color:${WK_STAY}; border-color:${WK_STAY}; }
+  .wkm.visit { color:${WK_VISIT}; border-color:${WK_VISIT}; }
+  .wkm .ct { font-size:11px; font-weight:700; }
+  .eyebrow.wk-eb.stay { color:${WK_STAY}; } .eyebrow.wk-eb.visit { color:${WK_VISIT}; }
+  .wk-sec { border-left:3px solid ${WK_STAY}; padding-left:10px; }
+  body.wkcity #c, body.wkcity #labels { opacity:.3; }
+  .wkmap { display:block; width:100%; height:auto; max-height:52vh; margin:8px 0 4px; border-radius:4px; }
+  .wkmap .sea { fill:#e9eef1; } .wkmap .d { fill:#f7f5f2; stroke:#d8d1cb; fill-rule:evenodd; }
+  .wkmap .dn { fill:#b9b1aa; text-anchor:middle; dominant-baseline:middle; }
+  .wkmap .ln { stroke:#b9b1aa; } .wkmap .ln.cur { stroke:var(--ink); }
+  .wkmap .oct circle { fill:#fff; stroke:var(--brand); } .wkmap .oct .dot { fill:var(--brand); stroke:none; } .wkmap .oct text { fill:var(--brand); font-weight:700; }
+  .wkmap .pt { cursor:pointer; } .wkmap .pt text { font-weight:650; paint-order:stroke; stroke:#fff; }
+  .wkmap .pt.visit circle { fill:${WK_VISIT}; } .wkmap .pt.stay circle { fill:${WK_STAY}; }
+  .wkmap .pt.visit text { fill:${WK_VISIT}; } .wkmap .pt.stay text { fill:${WK_STAY}; } .wkmap .pt .km { fill:var(--muted); font-weight:500; }
+  .wkmap .pt.cur circle { stroke:var(--ink); } .wkmap .pt.visit .ar { fill:${WK_VISIT}; } .wkmap .pt.stay .ar { fill:${WK_STAY}; }
+  .wkmap .nb text { fill:var(--muted); } .wkmap .nb line { stroke:var(--muted); }
+  .wk-l li.cur { background:var(--status); border-radius:4px; }
+  .wk-c { font-size:11px; font-weight:650; margin-left:4px; } .wk-c.stay { color:${WK_STAY}; } .wk-c.visit { color:${WK_VISIT}; }`;
+  document.head.appendChild(st);
+  const tmpW = new THREE.Vector3();
+  const shownR = (el) => { if (!el || el.style.display === "none" || getComputedStyle(el).display === "none") return null; const r = el.getBoundingClientRect(); return r.width ? [r.left, r.top, r.right, r.bottom] : null; };
+  const origPW = placeWework;
+  placeWework = function () {
+    origPW();
+    for (const g of FAR) g.el.style.display = wkOn(g.cat) ? "" : "none";
+    const R = { ...safeRect({ withPanel: false }) };
+    for (const id of ["compass", "zoomCtl"]) { const r = shownR(document.getElementById(id)); if (r && r[0] > innerWidth / 2 && r[3] > R.top && r[1] < R.bottom) R.right = Math.min(R.right, r[0] - 6); }
+    if (!MOBILE) { const r = shownR(panel); if (r && !panel.closest("#sheet")) { if (r[0] < innerWidth / 2) R.left = Math.max(R.left, r[2] + 6); else R.right = Math.min(R.right, r[0] - 6); } }   // 桌面详情卡开着时让开（组件不叠加）
+    const m = 22, cx = (R.left + R.right) / 2, cy = (R.top + R.bottom) / 2;
+    const placed = [...document.querySelectorAll(".ww")].map(shownR).filter(Boolean);
+    for (const g of FAR) {
+      if (!wkOn(g.cat)) continue;
+      const el = g.el, n = g.items[0];
+      const txt = `${tx(g.name)}${g.items.length > 1 ? ` ×${g.items.length}` : ""} · ${kmTx(n)}`;
+      if (el._t !== txt + lang) { el._t = txt + lang; el.querySelector(".ct").textContent = t(g.cat === "stay" ? "wkStay" : "wkVisit"); el.querySelector(".tx").textContent = txt; el.setAttribute("aria-label", `${t(g.cat === "stay" ? "wkStay" : "wkVisit")} ${txt}`); }
+      tmpW.copy(g.p).project(camera);
+      let x = (tmpW.x + 1) / 2 * innerWidth, y = (1 - tmpW.y) / 2 * innerHeight;
+      if (tmpW.z > 1) { x = 2 * cx - x; y = 2 * cy - y; }
+      const inside = tmpW.z <= 1 && x > R.left + m && x < R.right - m && y > R.top + m && y < R.bottom - m;
+      if (!inside) {
+        const vx = x - cx, vy = y - cy, k = Math.min(vx ? ((vx > 0 ? R.right - m : R.left + m) - cx) / vx : Infinity, vy ? ((vy > 0 ? R.bottom - m : R.top + m) - cy) / vy : Infinity);
+        x = cx + vx * k; y = cy + vy * k; el.style.setProperty("--a", Math.atan2(vy, vx) + "rad");
+      } else el.style.setProperty("--a", Math.PI / 2 + "rad");
+      const w = el.offsetWidth, hh = el.offsetHeight;
+      let B = R.bottom;
+      const fit = (px, py) => [Math.min(R.right - w / 2 - 4, Math.max(R.left + w / 2 + 4, px)), Math.min(B - hh / 2 - 4, Math.max(R.top + hh / 2 + 4, py))];
+      const hit = ([px, py]) => [...lblBoxes, ...placed].some((q) => !(px + w / 2 + 3 < q[0] || px - w / 2 - 3 > q[2] || py + hh / 2 + 3 < q[1] || py - hh / 2 - 3 > q[3]));
+      const vert = !inside && (Math.abs(x - (R.left + m)) < 1 || Math.abs(x - (R.right - m)) < 1);
+      let pos = fit(x, y), ok = !hit(pos);
+      if (!ok) for (const [da, dp] of WW_TRY) { const c = fit(x + (vert ? dp : da), y + (vert ? da : dp)); if (!hit(c)) { pos = c; ok = true; break; } }
+      if (!ok) { B = wwMapBottom(); const ex = x < cx ? R.left : R.right; for (let py = y; py < B; py += hh + 4) { const c = fit(ex, py); if (!hit(c)) { pos = c; ok = true; break; } } }
+      if (!ok) { el.style.display = "none"; continue; }   // 找不到空位就这一帧不显示，不压楼号
+      el.style.left = pos[0] + "px"; el.style.top = pos[1] + "px";
+      placed.push([pos[0] - w / 2, pos[1] - hh / 2, pos[0] + w / 2, pos[1] + hh / 2]);
+    }
+  };
 }
 
 </script>

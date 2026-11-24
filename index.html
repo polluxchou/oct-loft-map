@@ -2370,6 +2370,13 @@ window.__ready = true;
   #pc .trv .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
   #pc .trv .grid .hc { margin:0; } #pc .trv .chain { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--muted); flex-wrap:nowrap; }
   /* 第一层 tab：图标 + 名称，选中 lime（同页面其他分段控件） */
+  #pc .trv section.taxi { border-top:none; margin-top:6px; padding:12px 14px 14px; background:var(--soft); border-radius:10px; }
+  #pc .trv section.taxi h3 { display:flex; align-items:baseline; gap:8px; } #pc .trv section.taxi h3 .k { font-size:12px; font-weight:400; color:var(--muted); }
+  #pc .trv .say { margin:2px 0 10px !important; font-size:16px; line-height:1.6; color:var(--ink); }
+  #pc .trv .plays { display:flex; gap:8px; flex-wrap:wrap; }
+  #pc .trv .play { min-height:44px; padding:0 16px; border:1px solid #829700; border-radius:8px; background:var(--accent); color:var(--ink); font:inherit; font-size:15px; font-weight:650; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  #pc .trv .play:hover { background:#c9e71f; } #pc .trv .play[aria-pressed="true"] { background:var(--surface); border-color:var(--segline); font-weight:400; }
+  #pc .trv .play:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   #pc .trv .tabs { display:flex; gap:6px; margin:6px 0 12px; }
   #pc .trv .tab { flex:1 1 0; min-width:0; min-height:44px; padding:0 6px; border:none; border-radius:8px; background:var(--soft); color:var(--muted); font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; }
   #pc .trv .tab svg { flex:none; }
@@ -2397,15 +2404,30 @@ window.__ready = true;
     port: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 21V9l9-5 9 5v12M7 21v-7h10v7M3 21h18M12 14v7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
   };
   const hubCard = (h) => `<button type="button" class="hc" data-hub="${h.id}"><span class="nm">${esc(tz(h))}</span><span class="tm">${t("trTotal", total(h))}<small> · ${t("trFare", h.fare)}</small></span><span class="chain">${h.legs.map(([l]) => ln(l)).join("<span>›</span>")}<span>›</span>${walkIcon}</span></button>`;
+  // ---- 打车放在交通方式第一个（pollux 2026-11-24：「公共交通给一个打出租车的说明文案，讲清楚具体的地点，用中文说给司机听，点击就可以播放」「打车的放在交通方式的第一个」；wiki-candidates 会话加）
+  // 语音：edge-tts zh-CN-XiaoxiaoNeural −8%（web/audio/taxi-c2.mp3，16 s），Whisper 校过；「C2」念「C 二」。下车点按侨城北 B 口说明「侨香路南侧，和园区北区同侧」+ 页面路网：C2 离侨香路约 80 m
+  const TAXI_SAY = "师傅您好，我去南山区华侨城创意文化园北区，地址是锦绣北街 2 号。麻烦停在侨香路南边、靠近园区北区的路边，我要去园区里的 C2 展厅。谢谢！";
+  // 女声 / 男声两版（pollux：「给你一个女生版，一个男生版」）：女 zh-CN-XiaoxiaoNeural、男 zh-CN-YunxiNeural，都是 −8%
+  const TAXI_AU = { f: new Audio("audio/taxi-c2-f.mp3"), m: new Audio("audio/taxi-c2-m.mp3") };
+  for (const a of Object.values(TAXI_AU)) a.preload = "none";
+  const stopTaxi = () => { for (const a of Object.values(TAXI_AU)) { a.pause(); a.currentTime = 0; } };
+  const PLAY_ICO = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>', STOP_ICO = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3.5" y="3" width="3" height="10" fill="currentColor"/><rect x="9.5" y="3" width="3" height="10" fill="currentColor"/></svg>';
+  const taxiBtn = (on, v) => `${on ? STOP_ICO : PLAY_ICO}<span>${lang === "en" ? (on ? "Stop" : v === "f" ? "Female voice" : "Male voice") : (on ? "停止" : v === "f" ? "女声播放" : "男声播放")}</span>`;
+  const resetTaxiBtns = () => pc.querySelectorAll("[data-taxi]").forEach((b) => { b.innerHTML = taxiBtn(false, b.dataset.taxi); b.setAttribute("aria-pressed", "false"); });
+  for (const a of Object.values(TAXI_AU)) a.addEventListener("ended", resetTaxiBtns);
+  const taxiHtml = (km) => `<section class="taxi"><h3>${lang === "en" ? "Taxi" : "打车"}<span class="k">${lang === "en" ? "easiest" : "最省事"}${km ? ` · ${lang === "en" ? "about" : "直线约"} ${km} km` : ""}</span></h3>`
+    + `<p class="say" lang="zh-CN">“${TAXI_SAY}”</p>`
+    + (lang === "en" ? `<p class="k">Show or play this to the driver (in Chinese). It asks for the OCT-LOFT North Zone, 2 Jinxiu North St, dropping off on the south side of Qiaoxiang Rd near Hall C2.</p>` : "")
+    + `<div class="plays"><button type="button" class="play" data-taxi="f" aria-pressed="false">${taxiBtn(false, "f")}</button><button type="button" class="play" data-taxi="m" aria-pressed="false">${taxiBtn(false, "m")}</button></div></section>`;
   function listHtml() {
     const tab = (g) => `<button type="button" role="tab" class="tab${g.id === trGroup ? " on" : ""}" aria-selected="${g.id === trGroup}" data-grp="${g.id}" title="${esc(tz(g))}">${GICON[g.id].replace(/width="22" height="22"/, 'width="18" height="18"')}<span>${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}</span></button>`;   // tab 上只写短名，括号里的说明放 title
-    return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2><div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
+    return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2>${taxiHtml()}<div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
       + `<section><div class="grid" role="tabpanel">${TR.hubs.filter((h) => h.g === trGroup).map(hubCard).join("")}</div><p class="note">${t("trFoot")}</p></section>`;
   }
   function hubHtml(h) {
     const node = (nm, sub, end) => `<div class="nd${end ? " dest" : ""}"><div class="rail"><div class="dot${end ? " end" : ""}"></div></div><div class="tx"><div class="nm">${nm}</div>${sub ? `<div class="k">${sub}</div>` : ""}</div></div>`;
     const leg = (inner, c, w) => `<div class="nd leg${w ? " walk" : ""}" style="--c:${c || "#b9b1aa"}"><div class="rail"></div><div class="tx">${inner}</div></div>`;
-    let s = `<button type="button" class="backb" data-hub="list">${t("trBack")}</button><div class="eyebrow">${t("trEyebrow")}</div><h2>${esc(tz(h))}</h2><section>`
+    let s = `<button type="button" class="backb" data-hub="list">${t("trBack")}</button><div class="eyebrow">${t("trEyebrow")}</div><h2>${esc(tz(h))}</h2>${taxiHtml(h.km)}<section>`
       + `<div class="sum"><span class="big">${t("trTotal", total(h))}</span><span class="k">${t("trFare", h.fare)} · ${t("trSub", h.min, walk.min)}</span>${h.verified ? "" : `<span class="tag">${t("trUnv")}</span>`}</div><div class="it">`;
     s += node(esc(tz(h)), esc(tz(h.from)));
     h.legs.forEach(([l, a, , d, n], i) => {
@@ -2415,7 +2437,7 @@ window.__ready = true;
     s += node(t("trExit"), esc(tz(TR.arrive.note)));
     s += leg(`${walkIcon}<span>${t("trWalk", walk.min, walk.m)}</span>`, null, true);
     s += node(t("trC2"), t("trDest"), true) + `</div><button type="button" class="go" data-go>${t("trShow")}</button>`
-      + (h.alt ? `<p class="note">${esc(tz(h.alt))}</p>` : "") + `<p class="note">${t("trTaxi", h.km)}</p></section>`;
+      + (h.alt ? `<p class="note">${esc(tz(h.alt))}</p>` : "") + `</section>`;
     return s;
   }
   const setMode = () => document.body.classList.toggle("trmode", !!trView);
@@ -2426,6 +2448,12 @@ window.__ready = true;
     pc.querySelectorAll("[data-hub]").forEach((b) => (b.onclick = () => { trRender(b.dataset.hub); panel.scrollTop = 0; pc.scrollTop = 0; sheetBody.scrollTop = 0; pc.querySelector("button")?.focus({ preventScroll: true }); }));
     pc.querySelectorAll("[data-grp]").forEach((b) => (b.onclick = () => { trGroup = b.dataset.grp; trRender("list"); document.dispatchEvent(new Event("tr:group")); pc.querySelector(`[data-grp="${trGroup}"]`)?.focus({ preventScroll: true }); }));
     pc.querySelector("[data-go]")?.addEventListener("click", () => { trView = null; setMode(); routeFrom(exitB.p); });
+    pc.querySelectorAll("[data-taxi]").forEach((b) => (b.onclick = () => {
+      const v = b.dataset.taxi, a = TAXI_AU[v], on = !a.paused;
+      stopTaxi(); resetTaxiBtns();   // 同一时间只放一版
+      if (!on) { a.play().catch(() => {}); b.innerHTML = taxiBtn(true, v); b.setAttribute("aria-pressed", "true"); }
+    }));
+    stopTaxi();   // 换页就停
   }
   function trOpen(g) {
     if (typeof g === "string") trGroup = g;   // 不带参数时停在上次的 tab
@@ -4091,6 +4119,12 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
     if (u.kind === "building" && hotelOf.has(u.b)) {
       const H = hotelOf.get(u.b), h2 = pc.querySelector("h2");
       const eb = pc.querySelector(".eyebrow"); if (eb) { eb.textContent = `Wiki · ${t("wkStay")} · ${t(H.at === "in" ? "wkIn" : "wkOut")}`; eb.classList.add("wk-eb", "stay"); }
+      // 标题换成酒店名（pollux 2026-11-24：「嘉途的详情页没体现酒店名称」），原标题（楼号 / OSM 楼名）降为标题下第一个标签
+      if (h2) {
+        const orig = h2.textContent.trim(), name = lang === "en" ? H.en : H.zh;
+        h2.textContent = name;
+        if (orig && orig !== name) { let tg = pc.querySelector(".tags"); if (!tg) { h2.insertAdjacentHTML("afterend", `<div class="tags"></div>`); tg = pc.querySelector(".tags"); } tg.insertAdjacentHTML("afterbegin", `<span class="tag">${esc(orig)}</span>`); }
+      }
       (pc.querySelector(".tags") || h2)?.insertAdjacentHTML("afterend", hotelSec(H));
     }
   };

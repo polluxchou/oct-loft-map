@@ -3955,7 +3955,7 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
   // ---------- 4. 图层开关：「住」「玩」各一个图标，可单独筛选（pollux 2026-11-24：「住、玩的内容可以单独筛选出来方便找」）----------
   // 关掉「住」：酒店楼回到原来的白模 / 半透明周边楼样子，层线、招牌、标签、跳海方位标都收起；关掉「玩」：参观方位标收起
   // 从关到开时，镜头平移到能看见这一类（园区内酒店 → 取景这几栋；只有方位标的「玩」不动镜头，方位标本来就贴在画面边上）
-  const WK_ON = { stay: true, visit: false };   // 默认：住宿开、小旗（参观）关（pollux 2026-11-24 截图定的默认状态）
+  const WK_ON = { stay: true, visit: false };   // 默认：「住」「玩」都关（pollux 2026-11-24）；stay 先按开建好，下面 setStay(false) 收起
   const wkOn = (cat) => WK_ON[cat];
   function setStay(on) {
     WK_ON.stay = on; layer("wikiStay").visible = on;
@@ -3967,6 +3967,7 @@ window.octMoto = { start: (mode = "mission", from = null) => { MS = from ? mkMis
       m.castShadow = m.receiveShadow = on || H.orig.shadow;
     }
   }
+  setStay(false);
   const ICON_WK = {
     stay: `<path d="M3 19V7M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11.5" r="1.8"/>`,   // 床
     visit: `<path d="M5 21V4"/><path d="M5 5h12l-2.5 3.5L17 12H5"/>`,   // 小旗

@@ -2635,7 +2635,10 @@ window.__ready = true;
   #pc .trv .play:hover { background:#c9e71f; } #pc .trv .play[aria-pressed="true"] { background:var(--surface); border-color:var(--segline); font-weight:400; }
   #pc .trv .play:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   #pc .trv .tabs { display:flex; gap:6px; margin:6px 0 12px; }
-  #pc .trv .tab { flex:1 1 0; min-width:0; min-height:44px; padding:0 6px; border:none; border-radius:8px; background:var(--soft); color:var(--muted); font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; }
+  /* tab 宽度：平分剩余空间，但不小于内容（pollux 2026-11-25：选中的「火车站」文字和图标超出 tab）；图标 16、间距 4，四个 tab 在 320 宽手机、英文下也放得下 */
+  #pc .trv .tab { flex:1 1 0; min-width:max-content; min-height:44px; padding:0 6px; border:none; border-radius:8px; background:var(--soft); color:var(--muted); font-size:14px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; white-space:nowrap; }
+  /* 选中变粗体时预留粗体宽度，切换 tab 时不抖 */
+  #pc .trv .tab span { display:inline-flex; flex-direction:column; } #pc .trv .tab span::after { content:attr(data-t); height:0; overflow:hidden; visibility:hidden; font-weight:650; }
   #pc .trv .tab svg { flex:none; }
   #pc .trv .tab.on { background:var(--accent); color:var(--ink); font-weight:650; }
   #pc .trv .tab:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
@@ -2649,6 +2652,7 @@ window.__ready = true;
   @media (max-width: 640px) {
         #pc .trv .grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   }
+  @media (max-width: 360px) { #pc .trv .tabs { gap:4px; } }   /* 320 宽英文：四个 tab 差 1 px 放不下 */
   @media (max-width: 640px) { header .tr-open { display:none; } #home .tr-open { min-height:44px; font-size:14px; } }
   ` }));
 
@@ -2713,7 +2717,7 @@ window.__ready = true;
     + (lang === "en" ? `<p class="k">Show or play this to the driver (in Chinese). It asks for the OCT-LOFT North Zone, 2 Jinxiu North St, dropping off on the south side of Qiaoxiang Rd near Hall C2.</p>` : "")
     + `<p class="cprow">${copyBtnHtml("cplink")}</p></section><div class="actions"><button type="button" class="primary play" data-taxi="f" aria-pressed="false">${taxiBtn(false, "f")}</button><button type="button" class="ghost play" data-taxi="m" aria-pressed="false">${taxiBtn(false, "m")}</button></div>`;   // 播放按钮放进 .actions，由 dockActions 钉在面板最底下（pollux 2026-11-24：「确保涉及到操作按钮在页面最底部直接可见」）
   function listHtml() {
-    const tab = (g) => `<button type="button" role="tab" class="tab${g.id === trGroup ? " on" : ""}" aria-selected="${g.id === trGroup}" data-grp="${g.id}" title="${esc(tz(g))}">${GICON[g.id].replace(/width="22" height="22"/, 'width="18" height="18"')}<span>${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}</span></button>`;   // tab 上只写短名，括号里的说明放 title
+    const tab = (g) => `<button type="button" role="tab" class="tab${g.id === trGroup ? " on" : ""}" aria-selected="${g.id === trGroup}" data-grp="${g.id}" title="${esc(tz(g))}">${GICON[g.id].replace(/width="22" height="22"/, 'width="16" height="16"')}<span data-t="${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}">${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}</span></button>`;   // tab 上只写短名，括号里的说明放 title
     return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2><div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
       + (trGroup === "taxi" ? `<div role="tabpanel">${taxiHtml()}</div>` : `<section><div class="grid" role="tabpanel">${TR.hubs.filter((h) => h.g === trGroup).map(hubCard).join("")}</div><p class="note">${t("trFoot")}</p></section>`);
   }

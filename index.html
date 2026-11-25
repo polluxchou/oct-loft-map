@@ -2573,6 +2573,10 @@ window.__ready = true;
     trRide: (d, n) => `往${d}方向 · 坐 ${n} 站`, trChange: "换乘", trExit: "侨城北站 B 出口",
     trWalk: (w, m) => `步行约 ${w} 分钟 · 约 ${m} m`, trC2: "OCT-LOFT · C2 主会场", trDest: "终点 · 华侨城创意文化园北区", trShow: "在 3D 地图上看出口到 C2",
     trUnv: "乘车时间未证实", trTaxi: (k) => `打车：直线约 ${k} km，时间和车资待查`,
+    trCopy: "复制路线", trCopied: "已复制，可以直接转发", trCopyFail: "复制失败，请长按选中文字复制",
+    trCopyTx: (from, mode, route, min, n) => `从${from}到muShenzhen 主会场路线，如果你选择的是${mode}出行，那么请按照「${route}」的路线，耗时${min}，你需要中转 ${n} 次。`,
+    trCpLeg: (l, d, n, to) => `坐 ${l}（往${d}方向）${n} 站到${to}站`, trCpChg: "换乘", trCpWalk: (w, m) => `从侨城北站 B 出口出站，步行约 ${w} 分钟（约 ${m} m）到 OCT-LOFT C2 主会场`,
+    trCpMin: (m) => `约 ${m} 分钟`, trCpMetro: "地铁", trCpTaxi: "打车", trCpAny: "任意地点", trCpTaxiRoute: (say) => `跟司机说：${say}`, trCpTaxiMin: "视出发地和路况而定",
     trFoot: "线路、站数和方向按深圳地铁官方线网图核对，票价按深圳市发改委 2026-06-22 公布的全网票价表；乘车时间来自第三方换乘查询，仅供参考。核对日期 2026-11-20。",
   });
   Object.assign(I18N.en, {
@@ -2581,6 +2585,10 @@ window.__ready = true;
     trRide: (d, n) => `toward ${d} · ${n} stop${n > 1 ? "s" : ""}`, trChange: "change", trExit: "Qiaocheng North, Exit B",
     trWalk: (w, m) => `Walk about ${w} min · about ${m} m`, trC2: "OCT-LOFT · C2 main venue", trDest: "Destination · OCT-LOFT North Zone", trShow: "Show exit → C2 on the 3D map",
     trUnv: "travel time unconfirmed", trTaxi: (k) => `Taxi: ${k} km in a straight line; time and fare not yet checked`,
+    trCopy: "Copy route", trCopied: "Copied, ready to forward", trCopyFail: "Couldn't copy; press and hold the text to copy it",
+    trCopyTx: (from, mode, route, min, n) => `Route from ${from} to the muShenzhen main venue: if you travel by ${mode}, follow this route: ${route}. It takes ${min}, with ${n} transfer${n === 1 ? "" : "s"}.`,
+    trCpLeg: (l, d, n, to) => `${l} toward ${d}, ${n} stop${n > 1 ? "s" : ""} to ${to}`, trCpChg: "change to", trCpWalk: (w, m) => `leave Qiaocheng North by Exit B and walk about ${w} min (about ${m} m) to OCT-LOFT Hall C2`,
+    trCpMin: (m) => `about ${m} min`, trCpMetro: "metro", trCpTaxi: "taxi", trCpAny: "anywhere", trCpTaxiRoute: (say) => `tell the driver (in Chinese): “${say}”`, trCpTaxiMin: "a variable time, depending on where you start and traffic",
     trFoot: "Lines, stop counts and directions checked against the official Shenzhen Metro network map; fares against the city's official fare table (published 2026-06-22). Travel times come from a third-party planner and are approximate. Checked 2026-11-20.",
   });
   document.head.append(Object.assign(document.createElement("style"), { textContent: `
@@ -2631,6 +2639,13 @@ window.__ready = true;
   #pc .trv .tab svg { flex:none; }
   #pc .trv .tab.on { background:var(--accent); color:var(--ink); font-weight:650; }
   #pc .trv .tab:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+  /* 复制路线：详情页底栏左边的 ghost 按钮；打车 tab 里是说给司机听那段下面的一行链接 */
+  .actions .cpb { display:inline-flex; align-items:center; justify-content:center; gap:6px; white-space:nowrap; }
+  .actions .cpb .ico, .cplink .ico { width:16px; height:16px; flex:none; }
+  .actions .cpb.done { border-color:#829700; }
+  #pc .trv .cprow { margin:0 !important; }
+  .cplink { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0; border:none; background:none; color:var(--ink); font:inherit; font-size:14px; cursor:pointer; text-decoration:underline; text-decoration-color:var(--segline); text-underline-offset:3px; }
+  .cplink:hover { text-decoration-color:var(--ink); } .cplink:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
   @media (max-width: 640px) {
         #pc .trv .grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   }
@@ -2646,6 +2661,29 @@ window.__ready = true;
   const ln = (l) => `<span class="ln" style="background:${TR.lines[l].color};color:${TR.lines[l].text || "#fff"}">${esc(tz(TR.lines[l]))}</span>`;
   const walkIcon = `<svg width="12" height="16" viewBox="0 0 12 16" aria-hidden="true"><circle cx="7" cy="2.2" r="1.8" fill="#5a514a"/><path d="M6 5 3.5 9.5 1.5 10M6 5l1.5 4 2.5 1M6.3 8.5 5 15.5M7 9.5l2 6" stroke="#5a514a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const total = (h) => h.min + walk.min;
+  // ---- 复制路线（pollux 2026-11-25：「所有地图地址，都给一个方便复制转发其他人的能力，包含坐车方式，最小复制单位是一个单独的路线」）
+  // 文案格式照 pollux 原话：从xxx到muShenzhen 主会场路线，如果你选择的是xxx 出行，那么请按照xxx的路线，耗时约xxx分钟，你需要中转x次。
+  const hubCopy = (h) => {
+    const parts = h.legs.map(([l, , to, d, n], i) => { const x = t("trCpLeg", tz(TR.lines[l]), tz(TR.toward[d]), n, tz(TR.stations[to])); return i ? t("trCpChg") + " " + x.replace(/^坐 /, "") : x; });
+    parts.push(t("trCpWalk", walk.min, walk.m));
+    return t("trCopyTx", tz(h), t("trCpMetro"), parts.join(" → "), t("trCpMin", total(h)), h.legs.length - 1);
+  };
+  const taxiCopy = () => t("trCopyTx", t("trCpAny"), t("trCpTaxi"), t("trCpTaxiRoute", TAXI_SAY), t("trCpTaxiMin"), 0);
+  // 剪贴板：https / file:// 下用 Clipboard API；微信内置浏览器等拿不到时退回 textarea + execCommand
+  async function copyText(txt) {
+    try { await navigator.clipboard.writeText(txt); return true; } catch {}
+    try { const ta = Object.assign(document.createElement("textarea"), { value: txt }); ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0"; document.body.append(ta); ta.select(); ta.setSelectionRange(0, txt.length); const ok = document.execCommand("copy"); ta.remove(); return ok; } catch { return false; }
+  }
+  const COPY_ICO = '<svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>';
+  const copyBtnHtml = (cls) => `<button type="button" class="${cls} cpb" data-copy>${COPY_ICO}<span>${t("trCopy")}</span></button>`;
+  function bindCopy(b, getTxt) {
+    let tm = 0;
+    b.onclick = async () => {
+      const ok = await copyText(getTxt()), sp = b.querySelector("span");
+      sp.textContent = ok ? t("trCopied") : t("trCopyFail"); b.classList.toggle("done", ok);
+      clearTimeout(tm); tm = setTimeout(() => { sp.textContent = t("trCopy"); b.classList.remove("done"); }, 2500);
+    };
+  }
   let trView = null, trGroup = TR.groups[0].id;   // trView：null = 没打开；"list"；或枢纽 id。trGroup：当前 tab（机场 / 火车站 / 香港口岸），手机 picker 也改它
 
   // 第一层：机场 / 火车站 / 香港口岸 3 个 tab（pollux 2026-11-20：全部放一个画面太密），tab 下是该组的路线卡片网格
@@ -2673,7 +2711,7 @@ window.__ready = true;
   const taxiHtml = (km) => `<section class="taxi"><h3>${lang === "en" ? "Say this to the driver" : "说给司机听"}<span class="k">${lang === "en" ? "easiest from anywhere" : "从哪里来都最省事"}${km ? ` · ${lang === "en" ? "about" : "直线约"} ${km} km` : ""}</span></h3>`
     + `<p class="say" lang="zh-CN">“${TAXI_SAY}”</p>`
     + (lang === "en" ? `<p class="k">Show or play this to the driver (in Chinese). It asks for the OCT-LOFT North Zone, 2 Jinxiu North St, dropping off on the south side of Qiaoxiang Rd near Hall C2.</p>` : "")
-    + `</section><div class="actions"><button type="button" class="primary play" data-taxi="f" aria-pressed="false">${taxiBtn(false, "f")}</button><button type="button" class="ghost play" data-taxi="m" aria-pressed="false">${taxiBtn(false, "m")}</button></div>`;   // 播放按钮放进 .actions，由 dockActions 钉在面板最底下（pollux 2026-11-24：「确保涉及到操作按钮在页面最底部直接可见」）
+    + `<p class="cprow">${copyBtnHtml("cplink")}</p></section><div class="actions"><button type="button" class="primary play" data-taxi="f" aria-pressed="false">${taxiBtn(false, "f")}</button><button type="button" class="ghost play" data-taxi="m" aria-pressed="false">${taxiBtn(false, "m")}</button></div>`;   // 播放按钮放进 .actions，由 dockActions 钉在面板最底下（pollux 2026-11-24：「确保涉及到操作按钮在页面最底部直接可见」）
   function listHtml() {
     const tab = (g) => `<button type="button" role="tab" class="tab${g.id === trGroup ? " on" : ""}" aria-selected="${g.id === trGroup}" data-grp="${g.id}" title="${esc(tz(g))}">${GICON[g.id].replace(/width="22" height="22"/, 'width="18" height="18"')}<span>${esc(tz(g).replace(/\s*[（(].*[)）]\s*$/, ""))}</span></button>`;   // tab 上只写短名，括号里的说明放 title
     return `<div class="eyebrow">${t("trEyebrow")}</div><h2>${t("trListT")}</h2><div class="tabs" role="tablist">${TR.groups.map(tab).join("")}</div>`
@@ -2692,7 +2730,7 @@ window.__ready = true;
     s += node(t("trExit"), esc(tz(TR.arrive.note)));
     s += leg(`${walkIcon}<span>${t("trWalk", walk.min, walk.m)}</span>`, null, true);
     s += node(t("trC2"), t("trDest"), true) + `</div>`
-      + (h.alt ? `<p class="note">${esc(tz(h.alt))}</p>` : "") + `</section><div class="actions"><button type="button" class="primary" data-go>${t("trShow")}</button></div>`;   // 钉在面板最底下，不用滚到底才看到
+      + (h.alt ? `<p class="note">${esc(tz(h.alt))}</p>` : "") + `</section><div class="actions">${copyBtnHtml("ghost")}<button type="button" class="primary" data-go>${t("trShow")}</button></div>`;   // 钉在面板最底下，不用滚到底才看到
     return s;
   }
   const setMode = () => document.body.classList.toggle("trmode", !!trView);
@@ -2703,6 +2741,7 @@ window.__ready = true;
     pc.querySelectorAll("[data-hub]").forEach((b) => (b.onclick = () => { trRender(b.dataset.hub); panel.scrollTop = 0; pc.scrollTop = 0; sheetBody.scrollTop = 0; pc.querySelector("button")?.focus({ preventScroll: true }); }));
     pc.querySelectorAll("[data-grp]").forEach((b) => (b.onclick = () => { trGroup = b.dataset.grp; trRender("list"); document.dispatchEvent(new Event("tr:group")); pc.querySelector(`[data-grp="${trGroup}"]`)?.focus({ preventScroll: true }); }));
     pc.querySelector("[data-go]")?.addEventListener("click", () => { trView = null; setMode(); routeFrom(exitB.p); });
+    const cb = pc.querySelector("[data-copy]"); if (cb) bindCopy(cb, () => (h ? hubCopy(h) : taxiCopy()));
     pc.querySelectorAll("[data-taxi]").forEach((b) => (b.onclick = () => {
       const v = b.dataset.taxi, a = TAXI_AU[v], on = b.getAttribute("aria-pressed") === "true";   // 按按钮状态判断，朗读兜底时也能停
       stopTaxi(); resetTaxiBtns();   // 同一时间只放一版
